@@ -1,0 +1,73 @@
+---
+title: installation
+order: 1
+---
+
+## prerequisites
+
+before installing overlord, make sure you have:
+
+- **node.js** >= 20
+- **redis** (for the server — task queue and pub/sub)
+- **git** >= 2.20
+- an ai agent cli installed on worker machines (one or more of: `claude`, `cursor`, `codex`)
+
+## server setup
+
+install the overlord cli and server packages globally:
+
+```bash
+npm install -g @overlordai/cli @overlordai/server
+```
+
+run the interactive installation wizard:
+
+```bash
+overlord install
+```
+
+the wizard will:
+
+1. check that all prerequisites are met (node, redis, git)
+2. generate secrets (`JWT_SECRET`, `WORKER_JWT_SECRET`, `ENCRYPTION_KEY`)
+3. configure redis connection (default: `redis://localhost:6379/0`)
+4. initialize the sqlite database and run migrations
+5. create your admin account (username, password, git name, git email)
+
+all configuration is written to `~/.overlord/.env`.
+
+## start the server
+
+```bash
+overlord start      # start services (systemd / launchd)
+overlord status     # verify everything is running
+overlord doctor     # run health check
+```
+
+the `overlord start` command automatically generates and registers system services (systemd on linux, launchd on macos).
+
+## developer cli
+
+developers interact with overlord through the `ov` cli:
+
+```bash
+npm install -g @overlordai/developer-cli
+
+ov setup                 # quick setup — configure server url + authenticate
+ov task create --project PROJ "fix the login bug"
+ov attach 42             # connect to a running task's terminal
+```
+
+<Callout type="info">
+  the developer cli uses personal access tokens (pat) for authentication. generate one in the web dashboard under profile → access tokens.
+</Callout>
+
+## verify installation
+
+after starting the server, open `http://localhost:9000` in your browser and log in with the admin credentials you created during installation. check the machines page to verify workers are connected.
+
+## next steps
+
+- [quick start](/docs/getting-started/quick-start) — set up a development environment
+- [worker setup](/docs/getting-started/worker-setup) — configure worker machines
+- [deployment guide](/docs/guides/deployment) — deploy with cloudflare zero trust

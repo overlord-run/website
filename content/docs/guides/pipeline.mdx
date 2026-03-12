@@ -1,0 +1,108 @@
+---
+title: pipeline configuration
+order: 3
+---
+
+## overview
+
+each project in overlord can define a **skill pipeline** — a sequence of stages that the ai agent executes for every task. pipelines drive the entire task lifecycle, from initial development through testing and code review.
+
+## how pipelines work
+
+a pipeline consists of multiple **stages**. each stage corresponds to a skill command that overlord injects into the agent's pty terminal. the pipeline runner:
+
+1. injects the skill command for the current stage into the pty
+2. monitors agent output for completion markers
+3. automatically advances to the next stage
+4. handles errors, retries, and manual intervention
+
+## pipeline definition
+
+pipelines are configured per-project in json format via the admin dashboard or api:
+
+```json
+[
+  {
+    "name": "develop",
+    "command": "/develop {description}",
+    "timeout": 1800
+  },
+  {
+    "name": "test",
+    "command": "/run-tests",
+    "timeout": 600
+  },
+  {
+    "name": "review",
+    "command": "/review-and-commit",
+    "timeout": 900,
+    "confirm": true
+  }
+]
+```
+
+## stage options
+
+each stage supports the following options:
+
+| field | type | description |
+|-------|------|-------------|
+| `name` | string | stage identifier (displayed in dashboard) |
+| `command` | string | command to inject into the agent pty |
+| `timeout` | number | max seconds before the stage is marked failed |
+| `confirm` | boolean | pause and wait for human confirmation before executing |
+| `choices` | string[] | present a list of options for the user to choose from |
+| `input` | boolean | pause and wait for free-text input from the user |
+
+## confirmation stages
+
+when a stage has `"confirm": true`, the pipeline pauses and sends a notification through all connected channels (web dashboard, bot, cli). the task enters `SUSPENDED` status until a user confirms.
+
+confirmation can be done via:
+- web dashboard — click the confirm button on the task detail page
+- bot — `@bot confirm #42`
+- cli — `ov task confirm 42 --stage 2`
+
+## choice stages
+
+stages with `"choices"` present the user with a list of options:
+
+```json
+{
+  "name": "deploy-target",
+  "command": "/deploy {choice}",
+  "choices": ["staging", "production", "both"]
+}
+```
+
+the selected choice is interpolated into the command template.
+
+## template variables
+
+stage commands support template variables:
+
+| variable | description |
+|----------|-------------|
+| `{description}` | task description |
+| `{branch}` | git branch name |
+| `{project}` | project key |
+| `{choice}` | user's choice (for choice stages) |
+| `{input}` | user's input (for input stages) |
+
+## default pipeline
+
+if no pipeline is configured, overlord uses a single-stage default:
+
+```json
+[
+  {
+    "name": "develop",
+    "command": "/develop {description}",
+    "timeout": 3600
+  }
+]
+```
+
+<Callout type="info">
+  pipelines are project-specific. the exact content depends entirely on the skills configured in your agent — overlord makes no assumptions about what the stages do.
+</Callout>

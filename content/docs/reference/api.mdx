@@ -1,0 +1,332 @@
+---
+title: rest api
+order: 3
+---
+
+base url: `https://your-server:9000`. all endpoints return json. authenticate via bearer token in the authorization header.
+
+## authentication methods
+
+| method | description |
+|--------|-------------|
+| `jwt` | obtained via `/api/auth/login` — pass as `Authorization: Bearer <token>` |
+| `pat` | personal access token — same header format, for cli/api usage |
+| `worker-token` | enrollment token for worker registration — used during initial handshake |
+
+## auth
+
+### POST /api/auth/login
+
+authenticate with username + password (optional totp code).
+
+**body:** `{ "username": "string", "password": "string", "totpCode?": "string" }`
+
+**response:** `{ "accessToken": "string", "refreshToken": "string" }`
+
+### POST /api/auth/refresh
+
+refresh access token (rotates refresh token).
+
+**body:** `{ "refreshToken": "string" }`
+
+**response:** `{ "accessToken": "string", "refreshToken": "string" }`
+
+### POST /api/auth/logout
+
+invalidate refresh token. requires jwt auth.
+
+**body:** `{ "refreshToken": "string" }`
+
+## tasks
+
+### GET /api/web/tasks
+
+list tasks with optional filters. supports query parameters for status and project filtering.
+
+### POST /api/web/tasks
+
+create a new task.
+
+**body:** `{ "projectKey": "string", "description": "string", "machineId?": "string" }`
+
+### GET /api/web/tasks/:id
+
+get task details.
+
+### POST /api/web/tasks/:id/cancel
+
+cancel a running task.
+
+### POST /api/web/tasks/:id/retry
+
+retry a failed task.
+
+### POST /api/web/tasks/:id/confirm-stage
+
+confirm, choose, or provide input for a suspended stage.
+
+**body:** `{ "stageIndex": "number", "result": "string" }`
+
+### POST /api/web/tasks/:id/pty-token
+
+get a channel token for pty websocket connection.
+
+## machines
+
+### GET /api/web/machines
+
+list all machines.
+
+### GET /api/web/machines/:id
+
+get machine details.
+
+### GET /api/web/machines/:id/tasks
+
+list tasks assigned to a machine.
+
+### POST /api/web/machines/:id/drain
+
+start draining a machine (stops accepting new tasks).
+
+### POST /api/web/machines/:id/undrain
+
+cancel machine drain.
+
+## projects
+
+### GET /api/web/projects
+
+list all projects.
+
+### GET /api/web/projects/:key
+
+get project details.
+
+## profile
+
+### GET /api/web/profile
+
+get current user profile.
+
+### PUT /api/web/profile
+
+update profile (gitName, gitEmail).
+
+**body:** `{ "gitName?": "string", "gitEmail?": "string" }`
+
+### PUT /api/web/profile/password
+
+change password.
+
+**body:** `{ "currentPassword": "string", "newPassword": "string" }`
+
+### POST /api/web/profile/totp/setup
+
+initialize totp setup. returns a secret and qr code uri.
+
+### POST /api/web/profile/totp/verify
+
+verify totp setup code.
+
+**body:** `{ "code": "string" }`
+
+### GET /api/web/profile/tokens
+
+list personal access tokens.
+
+### POST /api/web/profile/tokens
+
+create a personal access token.
+
+**body:** `{ "label": "string", "expiresAt?": "string" }`
+
+### POST /api/web/profile/tokens/:id/revoke
+
+revoke a personal access token.
+
+## workspaces & tunnels
+
+### GET /api/web/workspaces/:taskId
+
+get workspace info for a task.
+
+### POST /api/web/workspace-tunnel/:taskId/start
+
+start a cursor remote tunnel for the task workspace.
+
+### POST /api/web/workspace-tunnel/:taskId/stop
+
+stop a running tunnel.
+
+### GET /api/web/workspace-tunnel/:taskId/status
+
+get tunnel status.
+
+## dashboard
+
+### GET /api/web/dashboard/stats
+
+get dashboard statistics (active tasks, machines, etc.).
+
+### GET /api/web/dashboard/recent-tasks
+
+get recent tasks for dashboard.
+
+### GET /api/web/dashboard/recent-activity
+
+get recent activity feed.
+
+## notifications
+
+### GET /api/web/notifications
+
+list notifications with cursor pagination.
+
+### POST /api/web/notifications/:id/read
+
+mark a notification as read.
+
+### POST /api/web/notifications/read-all
+
+mark all notifications as read.
+
+## search
+
+### GET /api/web/search?q=query
+
+global search across tasks, machines, and projects.
+
+## admin — developers
+
+### GET /api/admin/developers
+
+list all developers.
+
+### POST /api/admin/developers
+
+create a developer.
+
+**body:** `{ "name": "string", "password": "string", "role": "string", "gitName": "string", "gitEmail": "string" }`
+
+### PUT /api/admin/developers/:id
+
+update developer.
+
+### PUT /api/admin/developers/:id/reset-totp
+
+reset developer totp secret.
+
+## admin — projects
+
+### GET /api/admin/projects
+
+list all projects.
+
+### POST /api/admin/projects
+
+create a project.
+
+### PUT /api/admin/projects/:key
+
+update project (including pipeline).
+
+### DELETE /api/admin/projects/:key
+
+delete a project.
+
+### GET /api/admin/projects/:key/members
+
+get project members.
+
+### POST /api/admin/projects/:key/members
+
+add project member.
+
+### DELETE /api/admin/projects/:key/members?developerId=N
+
+remove project member.
+
+## admin — worker tokens
+
+### GET /api/admin/worker-tokens
+
+list all worker enrollment tokens.
+
+### POST /api/admin/worker-tokens
+
+generate a new worker token.
+
+### POST /api/admin/worker-tokens/:id/revoke
+
+revoke a worker token.
+
+### GET /api/admin/worker-tokens/:id/status
+
+get token status and linked machine.
+
+## admin — machines
+
+### GET /api/admin/machines
+
+list all machines (admin view).
+
+### PUT /api/admin/machines/:id
+
+update machine status.
+
+**body:** `{ "status?": "string" }`
+
+## admin — bots
+
+### GET /api/admin/bots
+
+list bot instances.
+
+### POST /api/admin/bots
+
+create a bot instance.
+
+### GET /api/admin/bots/:id/bindings
+
+get chat bindings for a bot.
+
+### POST /api/admin/bots/:id/bindings
+
+create a chat binding.
+
+### DELETE /api/admin/bots/:id/bindings
+
+delete a chat binding.
+
+## admin — audit & settings
+
+### GET /api/admin/audit-logs
+
+query audit log with filters.
+
+### GET /api/admin/settings
+
+get all system settings.
+
+### PUT /api/admin/settings
+
+update system settings.
+
+## websocket
+
+### WS /ws/pty/:taskId
+
+pty terminal websocket. first obtain a channel token via `POST /api/web/tasks/:taskId/pty-token`, then send an auth frame after connection:
+
+```json
+{ "type": "auth", "token": "<jwt>", "channelToken": "<channel-token>" }
+```
+
+### WS /api/workers/pty/:taskId
+
+worker pty websocket. auth via frame:
+
+```json
+{ "type": "auth", "workerJwt": "<worker-jwt>", "channelToken": "<channel-token>" }
+```

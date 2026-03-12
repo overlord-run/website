@@ -1,0 +1,301 @@
+---
+title: developer cli (ov)
+order: 1
+---
+
+the `ov` cli is the developer-facing command-line tool for interacting with overlord. it uses personal access tokens (pat) for authentication.
+
+## installation
+
+```bash
+npm install -g @overlordai/developer-cli
+```
+
+## setup & authentication
+
+### ov setup
+
+quick setup — configure server connection and authenticate in one step.
+
+```bash
+ov setup [--server <url>] [--token <token>]
+```
+
+| flag | description |
+|------|-------------|
+| `--server <url>` | overlord server url |
+| `--token <token>` | personal access token (skips prompt) |
+
+```
+ov setup
+> Overlord server URL: http://localhost:9000
+> Personal Access Token: ov_pat_xxxxx
+✓ Connected to http://localhost:9000
+✓ Authenticated as admin (admin)
+```
+
+### ov login
+
+authenticate with the overlord server using a personal access token.
+
+```bash
+ov login
+```
+
+### ov logout
+
+clear stored credentials.
+
+```bash
+ov logout
+```
+
+### ov whoami
+
+show current authenticated user.
+
+```bash
+ov whoami
+```
+
+## task management
+
+### ov task create
+
+create a new task.
+
+```bash
+ov task create -d <description> [-p <project>] [--on <machine>]
+```
+
+| flag | description |
+|------|-------------|
+| `-d, --description` | task description (required unless -f) |
+| `-p, --project` | project key to assign the task to |
+| `--on` | target machine id (optional) |
+| `-f, --file` | create task from yaml file |
+
+```bash
+ov task create -d "fix login bug" -p overlord
+```
+
+### ov task list
+
+list all tasks with optional filters.
+
+```bash
+ov task list [--status <status>] [-p <project>]
+```
+
+| flag | description |
+|------|-------------|
+| `--status` | filter by status (RUNNING, QUEUED, COMPLETED, FAILED, CANCELLED) |
+| `-p, --project` | filter by project key |
+
+### ov task show
+
+show detailed information about a task.
+
+```bash
+ov task show <task_id>
+```
+
+### ov task cancel
+
+cancel a running or queued task.
+
+```bash
+ov task cancel <task_id>
+```
+
+### ov task retry
+
+retry a failed task.
+
+```bash
+ov task retry <task_id>
+```
+
+### ov task logs
+
+view task logs (streams via pty if active, fetches historical otherwise).
+
+```bash
+ov task logs <task_id> [--json]
+```
+
+| flag | description |
+|------|-------------|
+| `--json` | output as json |
+
+### ov task confirm
+
+confirm a suspended task stage.
+
+```bash
+ov task confirm <task_id> --stage <index>
+```
+
+| flag | description |
+|------|-------------|
+| `--stage <index>` | stage index to confirm (required) |
+
+### ov task choose
+
+submit a choice for a suspended task.
+
+```bash
+ov task choose <task_id> <option> --stage <index>
+```
+
+| flag | description |
+|------|-------------|
+| `--stage <index>` | stage index to respond to (required) |
+
+### ov task input
+
+submit text input for a suspended task.
+
+```bash
+ov task input <task_id> <text> --stage <index>
+```
+
+| flag | description |
+|------|-------------|
+| `--stage <index>` | stage index to respond to (required) |
+
+## terminal
+
+### ov attach
+
+connect to a task pty terminal.
+
+```bash
+ov attach <task_id> [--watch] [--takeover] [--session <id>]
+```
+
+| flag | description |
+|------|-------------|
+| `--watch` | read-only observer mode |
+| `--takeover` | take over pty control from current user |
+| `--session <id>` | session id for takeover |
+
+## resources
+
+### ov project list
+
+list all projects.
+
+```bash
+ov project list
+```
+
+### ov project show
+
+show project details.
+
+```bash
+ov project show <project_key>
+```
+
+### ov machine list
+
+list all registered machines.
+
+```bash
+ov machine list
+```
+
+### ov machine show
+
+show machine details.
+
+```bash
+ov machine show <machine_id>
+```
+
+## notifications
+
+### ov notifications
+
+view your notifications.
+
+```bash
+ov notifications [--all] [--json]
+```
+
+| flag | description |
+|------|-------------|
+| `--all` | show all notifications (including read) |
+| `--json` | output as json |
+
+### ov notifications read
+
+mark a notification as read.
+
+```bash
+ov notifications read <notification_id>
+```
+
+## search
+
+### ov search
+
+search across tasks, machines, and projects.
+
+```bash
+ov search <query>
+```
+
+## configuration
+
+### ov config set
+
+set a configuration value.
+
+```bash
+ov config set <key> <value>
+```
+
+available keys:
+
+| key | description |
+|-----|-------------|
+| `server` | overlord server url |
+| `default-project` | default project key |
+| `output-format` | output format (table, json) |
+| `color` | enable/disable color (true/false) |
+
+### ov config get
+
+get a configuration value.
+
+```bash
+ov config get <key>
+```
+
+### ov config list
+
+list all configuration values.
+
+```bash
+ov config list [--json]
+```
+
+## utility
+
+### ov status
+
+show server connectivity, current user, and cluster overview.
+
+```bash
+ov status [--json]
+```
+
+### ov upgrade
+
+upgrade ov cli to the latest version.
+
+```bash
+ov upgrade
+```

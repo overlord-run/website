@@ -1,0 +1,76 @@
+---
+title: environment variables
+order: 4
+---
+
+## server variables
+
+server configuration is stored in `~/.overlord/.env`. these variables are set during `overlord install` and can be manually edited.
+
+| variable | default | description |
+|----------|---------|-------------|
+| `SERVER_PORT` | `9000` | http/ws port |
+| `DB_PATH` | `~/.overlord/data/overlord.db` | sqlite database path |
+| `REDIS_URL` | `redis://localhost:6379` | redis connection url |
+| `JWT_SECRET` | — | jwt signing secret (auto-generated during install) |
+| `WORKER_JWT_SECRET` | — | worker jwt signing secret (auto-generated during install) |
+| `CORS_ORIGIN` | `*` | allowed cors origins (comma-separated) |
+| `LOG_LEVEL` | `info` | log level: fatal, error, warn, info, debug, trace |
+
+<Callout type="warning">
+  never expose `JWT_SECRET` or `WORKER_JWT_SECRET`. these are generated automatically during installation and should not be shared or committed to version control.
+</Callout>
+
+### log levels
+
+| level | description |
+|-------|-------------|
+| `fatal` | critical errors causing shutdown |
+| `error` | runtime errors |
+| `warn` | warnings |
+| `info` | general operational info |
+| `debug` | detailed debugging info |
+| `trace` | very verbose tracing |
+
+## worker variables
+
+worker configuration is stored in `~/.overlord-worker/.env`. these are set during `overlord setup worker`.
+
+| variable | default | description |
+|----------|---------|-------------|
+| `OVERLORD_HOST` | — | server url (required) |
+| `OVERLORD_WORKER_TOKEN` | — | one-time registration token |
+| `OVERLORD_MACHINE_NAME` | hostname | display name for this machine |
+| `OVERLORD_WORKSPACE_ROOT` | `~/.overlord-worker/workspaces` | directory for task workspaces |
+| `OVERLORD_MAX_SLOTS` | `2` | maximum concurrent tasks |
+| `OVERLORD_DATA_DIR` | `~/.overlord-worker` | config and jwt storage directory |
+| `OVERLORD_SSH_KEY_PATH` | — | ssh key for git clone/push operations |
+
+<Callout type="info">
+  `OVERLORD_WORKER_TOKEN` is consumed on first registration. after that, the worker uses a jwt for authentication. the token field can remain in the .env file but will not be used again.
+</Callout>
+
+## redis configuration
+
+redis is required for the server (used for bullmq task queue and pub/sub).
+
+**recommended settings** in your redis configuration:
+
+```
+appendonly yes
+```
+
+redis must have aof persistence enabled to minimize queue data loss on restart.
+
+## file locations
+
+| path | description |
+|------|-------------|
+| `~/.overlord/` | server configuration directory |
+| `~/.overlord/.env` | server environment variables |
+| `~/.overlord/data/overlord.db` | sqlite database |
+| `~/.overlord/logs/` | server log files |
+| `~/.overlord-worker/` | worker configuration directory |
+| `~/.overlord-worker/.env` | worker environment variables |
+| `~/.overlord-worker/workspaces/` | task workspace directory |
+| `~/.overlord-worker/jwt.json` | worker jwt credentials |

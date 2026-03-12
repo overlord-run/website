@@ -1,0 +1,93 @@
+---
+title: worker setup
+order: 3
+---
+
+## overview
+
+each machine that will execute tasks needs the overlord worker package installed. workers connect to the server via websocket, receive task assignments, manage git workspaces, and run ai agents in pty terminals.
+
+## installation
+
+on each worker machine:
+
+```bash
+npm install -g @overlordai/cli @overlordai/worker
+```
+
+## interactive setup
+
+run the setup wizard:
+
+```bash
+overlord setup worker
+```
+
+the wizard prompts for:
+
+1. **server url** — the overlord server address (e.g., `https://overlord.yourdomain.com` or `http://localhost:9000`)
+2. **registration token** — a one-time token generated in admin → settings → tokens
+3. **machine name** — a display name for this worker
+4. **max slots** — maximum number of concurrent tasks (default: 2)
+
+the wizard writes configuration to `~/.overlord-worker/.env` and starts the worker service.
+
+<Callout type="info">
+  each worker needs its own unique registration token. generate one per machine in admin → settings → tokens (web dashboard).
+</Callout>
+
+## web ui guided setup
+
+alternatively, open `https://your-server/machines/setup` in a browser. the page provides step-by-step instructions with the exact commands to run on the worker machine.
+
+## what the worker does
+
+once running, the worker:
+
+- connects to the server via websocket (auto-reconnects on failure)
+- registers with the one-time token on first run, then uses jwt for subsequent connections
+- sends heartbeats every 30 seconds with cpu, memory, and disk usage
+- reports installed agent capabilities (claude, cursor, codex)
+- receives task assignments and creates isolated git worktrees
+- spawns pty terminals running the configured ai agent
+- streams terminal output back to the server in real time
+- manages cursor remote tunnels for workspace access
+
+## configuration
+
+worker configuration is stored in `~/.overlord-worker/.env`:
+
+| variable | default | description |
+|----------|---------|-------------|
+| `OVERLORD_HOST` | — | server url (required) |
+| `OVERLORD_WORKER_TOKEN` | — | one-time registration token |
+| `OVERLORD_MACHINE_NAME` | hostname | display name |
+| `OVERLORD_WORKSPACE_ROOT` | `~/.overlord-worker/workspaces` | task workspace directory |
+| `OVERLORD_MAX_SLOTS` | `2` | max concurrent tasks |
+| `OVERLORD_DATA_DIR` | `~/.overlord-worker` | config and jwt storage |
+| `OVERLORD_SSH_KEY_PATH` | — | ssh key for git operations |
+
+## non-interactive mode
+
+for automation or ci, pass all parameters as environment variables:
+
+```bash
+OVERLORD_HOST=https://overlord.yourdomain.com \
+OVERLORD_WORKER_TOKEN=ovw_1_abc123 \
+OVERLORD_MACHINE_NAME=worker-01 \
+OVERLORD_MAX_SLOTS=4 \
+overlord setup worker --non-interactive
+```
+
+## verify
+
+after setup, check the machines page in the web dashboard — the new worker should appear with status "online". you can also verify from the cli:
+
+```bash
+ov machine list
+```
+
+## next steps
+
+- [deployment guide](/docs/guides/deployment) — deploy with cloudflare zero trust
+- [environment variables](/docs/reference/environment-variables) — full variable reference

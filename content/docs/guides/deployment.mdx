@@ -1,0 +1,197 @@
+---
+title: deployment guide
+order: 1
+---
+
+## architecture
+
+deploy overlord on an ubuntu server (main server + worker) and additional machines (workers), exposed via cloudflare zero trust.
+
+```
+internet
+    │
+    ▼
+cloudflare zero trust (access + tunnel)
+    │
+    ├── overlord.yourdomain.com ──► ubuntu server :9000 (overlord server)
+    │                                  └── worker 1 (local)
+    │
+    └── (outbound only)
+            mac mini ──► worker 2 (connects to server via tunnel)
+```
+
+## prerequisites
+
+**on all machines:**
+- node.js >= 20, git >= 2.20
+- ai agent cli installed (one or more of: `claude`, `cursor`, `codex`)
+
+**ubuntu server only:**
+- redis
+- systemd (standard on ubuntu)
+
+## step 1: set up ubuntu server
+
+### 1.1 install overlord
+
+```bash
+npm install -g @overlordai/cli @overlordai/server
+
+overlord install
+```
+
+the wizard will:
+1. check prerequisites
+2. generate secrets (JWT_SECRET, WORKER_JWT_SECRET, ENCRYPTION_KEY)
+3. configure redis url (default: `redis://localhost:6379/0`)
+4. initialize the sqlite database
+5. create your admin account
+
+### 1.2 start the server
+
+```bash
+overlord start
+overlord status    # verify it's running
+overlord doctor    # health check
+```
+
+the `overlord start` command generates systemd user services automatically.
+
+## step 2: set up cloudflare zero trust
+
+set up the tunnel **before** configuring workers — workers connect to the server via the public url.
+
+all configuration is done in the [cloudflare zero trust dashboard](https://one.dash.cloudflare.com/).
+
+### 2.1 create a tunnel
+
+1. **networks → tunnels → create a tunnel**
+2. choose **cloudflared** connector type
+3. name: `overlord`
+4. install and run the connector on your ubuntu server using the command provided by cloudflare
+
+### 2.2 configure public hostname
+
+in the tunnel settings, add a public hostname:
+
+| field | value |
+|-------|-------|
+| subdomain | `overlord` |
+| domain | `yourdomain.com` |
+| service type | `HTTP` |
+| url | `localhost:9000` |
+
+### 2.3 configure access policy
+
+1. **access → applications → add application → self-hosted**
+   - domain: `overlord.yourdomain.com`
+
+2. **add policy:**
+   - action: allow
+   - include: emails ending in `@yourdomain.com` (or specific addresses)
+
+3. **bypass api/websocket/webhook paths** (these endpoints have their own authentication):
+   - path starts with `/api/` (rest api — jwt auth)
+   - path starts with `/ws/` (websocket — jwt auth)
+   - path starts with `/webhook/` (bot webhooks — platform signature verification)
+
+## step 3: configure workers
+
+each worker machine needs the `@overlordai/cli` and `@overlordai/worker` packages and a registration token (one per machine, generated in admin → settings → tokens).
+
+**option a: cli setup wizard** (on the worker machine)
+
+```bash
+npm install -g @overlordai/cli @overlordai/worker
+
+overlord setup worker
+```
+
+the wizard prompts for server url (use `https://overlord.yourdomain.com`), token, machine name, and max slots, then writes config and starts the service.
+
+**option b: web ui guided setup**
+
+open `https://overlord.yourdomain.com/machines/setup` in a browser and follow the step-by-step guide. it provides the exact commands to run on the worker machine.
+
+<Callout type="info">
+  each worker needs its own unique registration token. generate one per machine in admin → settings → tokens.
+</Callout>
+
+## step 4: verify
+
+### browser
+
+1. go to `https://overlord.yourdomain.com`
+2. log in with admin credentials
+3. check machines page — both workers should show "online"
+
+### developer cli
+
+```bash
+npm install -g @overlordai/developer-cli
+
+ov login https://overlord.yourdomain.com
+ov whoami
+ov machine list    # should show ubuntu-server and mac-mini
+```
+
+### test task
+
+```bash
+ov task create --project YOUR_PROJECT "echo hello world"
+ov attach <taskId>
+```
+
+## logging
+
+### viewing logs
+
+```bash
+# via overlord cli
+overlord logs server          # tail server logs
+overlord logs worker          # tail worker logs
+overlord logs server -n 200   # show last 200 lines
+
+# via systemd (linux)
+journalctl --user-unit overlord-server -f
+journalctl --user-unit overlord-worker --since today
+journalctl --user-unit overlord-server -p err
+
+# via launchd (macos)
+tail -f ~/.overlord/logs/server.log
+tail -f ~/.overlord/logs/server.err
+```
+
+### log levels
+
+set the `LOG_LEVEL` environment variable in your `.env` file:
+
+| level | description |
+|-------|-------------|
+| `fatal` | critical errors causing shutdown |
+| `error` | runtime errors |
+| `warn` | warnings |
+| `info` | general operational info (default) |
+| `debug` | detailed debugging info |
+| `trace` | very verbose tracing |
+
+## troubleshooting
+
+| symptom | check |
+|---------|-------|
+| worker shows "offline" | check `OVERLORD_HOST` and token in worker logs |
+| websocket disconnects | cloudflare tunnel config — ensure no timeout on long-lived connections |
+| "not authenticated" on cli | `ov login` again — token may have expired |
+| server won't start | `overlord doctor` — checks redis, db, ports |
+| pty terminal blank | check worker has `claude` / `cursor` / `codex` cli installed |
+| cloudflare 403 | check access bypass rules for `/api/*`, `/ws/*`, and `/webhook/*` |
+| service not starting | `systemctl --user status overlord-server` — check for config errors |
+
+## updating
+
+```bash
+npm update -g @overlordai/cli @overlordai/server
+
+overlord restart server
+overlord restart worker
+```

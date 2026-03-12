@@ -1,0 +1,134 @@
+---
+title: operations cli (overlord)
+order: 2
+---
+
+the `overlord` cli is the operations and administration tool for managing server and worker services.
+
+## installation
+
+```bash
+npm install -g @overlordai/cli
+```
+
+<Callout type="info">
+  the server also requires `@overlordai/server` and workers require `@overlordai/worker` to be installed alongside the cli.
+</Callout>
+
+## commands
+
+### overlord install
+
+interactive server installation wizard — checks environment, configures database, creates admin account.
+
+```bash
+overlord install
+```
+
+the wizard:
+1. checks prerequisites (node.js, redis, git)
+2. generates secrets (JWT_SECRET, WORKER_JWT_SECRET, ENCRYPTION_KEY)
+3. configures redis connection
+4. initializes the sqlite database and runs migrations
+5. creates the admin account
+
+all configuration is written to `~/.overlord/.env`.
+
+### overlord setup worker
+
+interactive worker setup wizard — configures connection, writes .env, registers service.
+
+```bash
+overlord setup worker
+```
+
+prompts for:
+- server url
+- registration token (one-time, from admin → settings → tokens)
+- machine name
+- max concurrent task slots
+
+writes configuration to `~/.overlord-worker/.env` and registers the system service.
+
+### overlord start
+
+start server or worker services (systemd / launchd).
+
+```bash
+overlord start [server|worker]
+```
+
+with no argument, starts all configured services. generates systemd/launchd service files automatically.
+
+### overlord stop
+
+stop running processes.
+
+```bash
+overlord stop [server|worker]
+```
+
+### overlord restart
+
+restart services.
+
+```bash
+overlord restart [server|worker]
+```
+
+### overlord status
+
+show process status table (pid, cpu, memory, uptime).
+
+```bash
+overlord status
+```
+
+### overlord logs
+
+view server or worker logs.
+
+```bash
+overlord logs [server|worker] [--lines <n>]
+```
+
+| flag | description |
+|------|-------------|
+| `--lines <n>` | number of lines to show (default: 50) |
+
+you can also use system-level log tools:
+
+```bash
+# linux (systemd)
+journalctl --user-unit overlord-server -f
+journalctl --user-unit overlord-worker --since today
+
+# macos (launchd)
+tail -f ~/.overlord/logs/server.log
+```
+
+### overlord doctor
+
+run system diagnostics. checks:
+
+- node.js version
+- redis connectivity
+- database integrity
+- port availability
+- service health
+
+```bash
+overlord doctor
+```
+
+### overlord upgrade
+
+upgrade to latest release with sha256 verification.
+
+```bash
+overlord upgrade [--version <tag>]
+```
+
+| flag | description |
+|------|-------------|
+| `--version <tag>` | specific version to install (default: latest) |

@@ -1,0 +1,128 @@
+---
+title: system overview
+order: 1
+---
+
+## architecture diagram
+
+```
+                            ┌──────────────────┐
+                            │    Developer      │
+                            │ (create / attach) │
+                            └──┬─────┬──────┬──┘
+                               │     │      │
+             ┌─────────────────┘     │      └─────────────────┐
+             ▼                       ▼                        ▼
+┌────────────────────┐  ┌───────────────────────┐  ┌───────────────────────┐
+│  Lark / Slack Bot   │  │   Web App (Browser)    │  │  Developer CLI (ov)   │
+│ @bot develop "xxx"  │  │  live terminal xterm.js │  │  ov task / ov attach  │
+└────────┬───────────┘  └───────────┬───────────┘  └───────────┬───────────┘
+         │                          │                           │
+         ▼                          ▼                           ▼
+┌─────────────────┐  ┌──────────────────────────────────┐  ┌──────────────┐
+│ Message Adapter  │─▶│       Overlord Server (:9000)     │◀─│ REST + WS    │
+│ webhook → Command│  │  NestJS + SQLite + Redis          │  └──────────────┘
+└─────────────────┘  │  JWT auth + RBAC + BullMQ          │
+                     │                                    │
+                     │  ┌──────────────────────────────┐  │
+                     │  │  Task Dispatcher + Notifier   │  │
+                     │  └──────────────┬───────────────┘  │
+                     └────────────────┼───────────────────┘
+                                      │ WebSocket control channel
+                   ┌──────────────────┼──────────────────┐
+             ┌─────┴─────┐     ┌─────┴─────┐     ┌─────┴─────┐
+             │  Worker 1  │     │  Worker 2  │     │  Worker N  │
+             │ PTY+Agent  │     │ PTY+Agent  │     │ PTY+Agent  │
+             │ (Claude /  │     │ (Cursor /  │     │ (Custom)   │
+             │  Codex)    │     │  Claude)   │     │            │
+             └─────┬─────┘     └───────────┘     └───────────┘
+                   │                 ▲
+                   │                 │ Bidirectional PTY
+                   ▼
+             ┌──────────────┐     ┌─────────────────────────────┐
+             │ Git Push MR  │────▶│ Notifier → Bot / Web notify │
+             └──────────────┘     └─────────────────────────────┘
+```
+
+## core components
+
+| component | description | runs on |
+|-----------|-------------|---------|
+| **message adapter** | receives lark / slack webhook events, parses user commands, outputs unified `Command` objects | server |
+| **overlord web** | browser-based dashboard — task management, live pty terminal, machine monitoring, admin panel | server |
+| **task dispatcher** | scheduling engine — manages task queue (bullmq), selects workers, tracks task lifecycle, persists to sqlite | server |
+| **worker agent** | execution engine — manages git worktrees, spawns pty terminals, runs ai agents, manages cursor tunnels | each worker machine |
+| **pty manager** | worker sub-component — creates pseudo-terminals via node-pty, streams i/o bidirectionally | worker |
+| **pipeline runner** | worker sub-component — monitors pty output, detects stage completion, injects next skill command | worker |
+| **notifier** | sends notifications via the source platform (lark cards, slack blocks) and in-app notifications | server |
+| **developer cli (ov)** | command-line tool — task creation, pty attach, project/machine queries, notifications | developer machine |
+
+## monorepo packages
+
+| package | description |
+|---------|-------------|
+| `packages/protocol` | shared types, enums, websocket frames, constants |
+| `apps/server` | nestjs backend — auth, dispatcher, scheduler, websocket gateway |
+| `apps/web` | react frontend — dashboard, task management, live terminal |
+| `apps/worker` | worker process — agent execution, pty management, git operations |
+| `apps/cli` | operations cli (`overlord install/start/stop/doctor/upgrade`) |
+| `apps/developer-cli` | developer cli (`ov setup/task/attach/status/upgrade`) |
+| `apps/e2e` | end-to-end integration tests |
+
+## data flow
+
+1. **task creation** — developer creates a task via web, cli, or bot
+2. **dispatching** — dispatcher selects the best available worker based on capacity, capabilities, and load
+3. **workspace setup** — worker creates an isolated git worktree for the task
+4. **execution** — pipeline runner drives the ai agent through configured stages
+5. **monitoring** — pty output streams in real time to web dashboard and cli
+6. **completion** — agent commits code, pushes branch, creates mr/pr
+7. **notification** — notifier informs the developer through their original channel
+
+## task state machine
+
+```
+QUEUED → ASSIGNED → RUNNING ──→ COMPLETED
+                       │  ↘
+                       │   CANCELLED
+                       ↓       ↑
+                   SUSPENDED ──┤
+                       │    ──→ RUNNING (reconnect)
+                       │    ──→ COMPLETED
+                       │    ──→ FAILED (timeout)
+                       │
+              FAILED ←─┘
+                ↓
+            QUEUED (retry)
+```
+
+| status | description |
+|--------|-------------|
+| `QUEUED` | task created, waiting for available worker |
+| `ASSIGNED` | worker selected, preparing workspace |
+| `RUNNING` | pipeline executing (current stage tracked) |
+| `SUSPENDED` | worker offline, task may still be executing — awaiting reconnection |
+| `COMPLETED` | all stages finished, code committed |
+| `FAILED` | execution error — can be retried |
+| `CANCELLED` | manually cancelled by user |
+
+## machine selection
+
+the dispatcher selects target machines using these criteria (in priority order):
+
+1. user-specified machine via `--on` parameter
+2. exclude offline and draining machines
+3. filter by required capabilities (e.g., `claude`, `cursor`)
+4. exclude machines above load threshold (default 85% cpu/memory)
+5. exclude machines with all slots full
+6. prefer machines that already have the project's base repository
+7. select by lowest composite load score
+8. tie-break by raw hardware capacity
+
+## security model
+
+- **authentication**: jwt tokens (access + refresh) with totp 2fa
+- **authorization**: role-based access control (developer, lead, admin)
+- **api tokens**: scoped personal access tokens for cli and api usage
+- **worker auth**: one-time enrollment tokens + jwt for ongoing communication
+- **audit trail**: all administrative actions logged to audit_logs table

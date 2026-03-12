@@ -1,0 +1,100 @@
+---
+title: development
+order: 2
+---
+
+## prerequisites
+
+- **node.js** >= 20
+- **pnpm** >= 9
+- **redis** (for task queue)
+- **git** >= 2.20
+
+## tech stack
+
+| layer | technologies |
+|-------|-------------|
+| **backend** | nestjs 10, better-sqlite3 (wal mode), ioredis, bullmq, bcrypt, otplib (totp) |
+| **frontend** | react 19, vite 6, tailwindcss v4, zustand 5, ky, xterm.js, react router 7 |
+| **testing** | vitest 4, supertest |
+| **monorepo** | pnpm workspaces |
+
+<Callout type="warning">
+  do not use typeorm, prisma, axios, or jest. the project uses raw better-sqlite3, ky for http, and vitest for tests.
+</Callout>
+
+## project structure
+
+```
+apps/server/src/
+├── auth/           # jwt auth, passport, guards, decorators
+├── common/         # crypto service, rate limiter, logger
+├── database/       # DatabaseService, MigrationRunner, repositories
+├── dispatcher/     # task lifecycle, scheduler, worker connections
+├── notifier/       # notifications (in-app, lark/slack)
+├── redis/          # redis service wrapper
+├── web/            # http controllers + admin/
+└── main.ts
+
+apps/web/src/
+├── components/     # reusable ui components
+├── pages/          # route pages (admin/, docs/)
+├── services/       # api client (ky), websocket client
+├── store/          # zustand stores
+├── i18n/           # internationalization
+└── App.tsx
+```
+
+## npm scripts
+
+| script | description |
+|--------|-------------|
+| `pnpm dev` | start the server on port 9000 |
+| `pnpm dev:web` | vite dev server on port 5173 |
+| `pnpm dev:seed` | seed test data |
+| `pnpm build` | build all packages |
+| `pnpm test` | run all tests |
+| `pnpm publish:all` | publish all packages to npm |
+
+## database
+
+sqlite with wal mode. the database file lives at `~/.overlord/data/overlord.db` (or `.data/` in development, which is gitignored).
+
+migrations are in `database/migrations/` and run automatically on server start. they are numbered sequentially (e.g., `001-initial.sql`, `002-add-audit-logs.sql`).
+
+<Callout type="info">
+  always use raw sql with better-sqlite3. do not introduce orm dependencies.
+</Callout>
+
+## protocol package
+
+the `packages/protocol` package contains all shared types, enums, websocket frame definitions, and constants used by both server and clients.
+
+after modifying types:
+
+```bash
+pnpm --filter @overlordai/protocol build
+```
+
+## coding conventions
+
+- use `rounded-[4px]` not `rounded-md` for border radius
+- all ui text is lowercase by default (css `text-transform: lowercase`)
+- font: jetbrains mono throughout
+- never return `passwordHash` or `totpSecret` in api responses
+- do not inherit `process.env` in worker pty sessions
+- use ky for http requests (not axios/fetch)
+- use vitest for testing (not jest)
+
+## role-based access control
+
+| permission | developer | lead | admin |
+|-----------|-----------|------|-------|
+| view tasks / machines / projects | yes | yes | yes |
+| create tasks (own projects) | yes | yes | yes |
+| cancel / retry own tasks | yes | yes | yes |
+| drain / undrain machines | — | yes | yes |
+| edit projects | — | — | yes |
+| manage developers | — | — | yes |
+| manage worker tokens | — | — | yes |
+| view audit logs | — | — | yes |

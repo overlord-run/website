@@ -1,0 +1,82 @@
+---
+title: quick start
+order: 2
+---
+
+## development setup
+
+clone the repository and install dependencies:
+
+```bash
+git clone https://github.com/nicepkg/overlord.git
+cd overlord
+pnpm install
+```
+
+build the shared protocol package and server:
+
+```bash
+pnpm --filter @overlordai/protocol build
+pnpm --filter @overlordai/server build
+```
+
+## seed test data
+
+populate the database with sample developers, projects, and machines:
+
+```bash
+pnpm dev:seed
+```
+
+this creates the following test accounts:
+
+| username | role | password | totp secret |
+|----------|------|----------|-------------|
+| `admin` | admin | `test-password-123` | `JBSWY3DPEHPK3PXP` |
+| `alice` | lead | `test-password-123` | `JBSWY3DPEHPK3PXP` |
+| `bob` | developer | `test-password-123` | `JBSWY3DPEHPK3PXP` |
+| `carol` | developer | `test-password-123` | `JBSWY3DPEHPK3PXP` |
+
+<Callout type="info">
+  use any totp authenticator app with the secret `JBSWY3DPEHPK3PXP` to generate 2fa codes for login.
+</Callout>
+
+## start development servers
+
+open two terminals:
+
+```bash
+# terminal 1: start the backend server on port 9000
+pnpm dev
+
+# terminal 2: start the web dev server on port 5173
+pnpm dev:web
+```
+
+the vite dev server proxies `/api/*` and `/ws/*` requests to the backend server on port 9000.
+
+open `http://localhost:5173` in your browser and log in with any of the seed credentials.
+
+## npm scripts
+
+| script | description |
+|--------|-------------|
+| `pnpm dev` | start the server |
+| `pnpm dev:web` | vite dev server (port 5173) |
+| `pnpm dev:seed` | seed test data |
+| `pnpm build` | build all packages |
+| `pnpm test` | run all tests |
+| `pnpm publish:all` | publish all packages to npm |
+
+## after protocol changes
+
+whenever you modify types in `packages/protocol`, rebuild:
+
+```bash
+pnpm --filter @overlordai/protocol build
+```
+
+## next steps
+
+- [worker setup](/docs/getting-started/worker-setup) — configure worker machines to execute tasks
+- [developer cli reference](/docs/reference/developer-cli) — full `ov` command reference
