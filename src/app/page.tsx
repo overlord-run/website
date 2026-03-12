@@ -182,7 +182,7 @@ export default function LandingPage() {
             background: "radial-gradient(ellipse at center, var(--accent), transparent 70%)",
           }}
         />
-        <div className="relative mx-auto max-w-5xl px-4 pb-20 pt-24 text-center sm:px-6 sm:pb-28 sm:pt-32">
+        <div className="relative mx-auto max-w-5xl px-5 pb-20 pt-20 text-center sm:px-6 sm:pb-28 sm:pt-32">
           <div className="mb-6 inline-flex items-center rounded-full border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-4 py-1.5 text-xs text-[var(--accent)]">
             v1.0 — full automation platform
           </div>
@@ -288,7 +288,7 @@ export default function LandingPage() {
           {/* Architecture flow */}
           <div className="mt-14 flex flex-col items-center gap-3">
             {/* Entry layer */}
-            <div className="grid w-full max-w-2xl grid-cols-3 gap-3">
+            <div className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
               {archComponents.slice(0, 3).map((c) => (
                 <div
                   key={c.name}
@@ -333,7 +333,7 @@ export default function LandingPage() {
             </div>
 
             {/* Workers + Git */}
-            <div className="grid w-full max-w-2xl grid-cols-2 gap-3">
+            <div className="grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
               {archComponents.slice(4, 6).map((c) => (
                 <div
                   key={c.name}
@@ -371,7 +371,7 @@ export default function LandingPage() {
             {techStack.map((t) => (
               <div
                 key={t.label}
-                className="flex items-baseline gap-4 rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] px-5 py-3"
+                className="flex flex-col gap-1 rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] px-5 py-3 sm:flex-row sm:items-baseline sm:gap-4"
               >
                 <span className="w-24 flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
                   {t.label}
@@ -420,8 +420,8 @@ export default function LandingPage() {
                     <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
                       {step.desc}
                     </p>
-                    <div className="mt-3 flex items-center justify-between gap-2 rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2.5">
-                      <code className="overflow-x-auto text-[11px] text-[var(--text-primary)] whitespace-nowrap">
+                    <div className="mt-3 flex items-center gap-2 rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2.5">
+                      <code className="min-w-0 flex-1 overflow-x-auto text-[11px] text-[var(--text-primary)] whitespace-nowrap">
                         <span className="select-none text-[var(--text-muted)]">$ </span>
                         {step.command}
                       </code>

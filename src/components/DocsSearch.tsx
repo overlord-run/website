@@ -137,7 +137,7 @@ export function DocsSearch() {
       {/* Modal — portaled to body to escape sidebar overflow clipping */}
       {open && createPortal(
         <div
-          className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]"
+          className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[10vh] sm:pt-[15vh]"
           onClick={() => { setOpen(false); setQuery(""); }}
         >
           {/* Backdrop */}
@@ -146,7 +146,7 @@ export function DocsSearch() {
           {/* Dialog */}
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-lg rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] shadow-2xl"
+            className="relative w-full max-w-[calc(100vw-2rem)] rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] shadow-2xl sm:max-w-lg"
           >
             {/* Input */}
             <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
