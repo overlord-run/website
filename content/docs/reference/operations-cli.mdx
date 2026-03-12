@@ -89,12 +89,12 @@ overlord status
 view server or worker logs.
 
 ```bash
-overlord logs [server|worker] [--lines <n>]
+overlord logs [server|worker] [-n, --lines <n>]
 ```
 
 | flag | description |
 |------|-------------|
-| `--lines <n>` | number of lines to show (default: 50) |
+| `-n, --lines <n>` | number of lines to show (default: 50) |
 
 you can also use system-level log tools:
 
@@ -123,12 +123,8 @@ overlord doctor
 
 ### overlord upgrade
 
-upgrade to latest release with sha256 verification.
+upgrade all overlord packages to the latest release from npm, then restart running services.
 
 ```bash
-overlord upgrade [--version <tag>]
+overlord upgrade
 ```
-
-| flag | description |
-|------|-------------|
-| `--version <tag>` | specific version to install (default: latest) |

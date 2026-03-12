@@ -68,6 +68,54 @@ const techStack = [
   { label: "deploy", value: "systemd / launchd + cloudflare tunnel" },
 ];
 
+const setupSteps = [
+  {
+    num: "01",
+    title: "deploy the server",
+    desc: "install overlord and start the central server. it manages all tasks, authentication, and real-time communication.",
+    command: "npm install -g @overlordai/cli @overlordai/server && overlord install",
+    link: "/docs/getting-started/installation",
+    linkText: "installation guide",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" />
+        <line x1="8" y1="21" x2="16" y2="21" />
+        <line x1="12" y1="17" x2="12" y2="21" />
+      </svg>
+    ),
+  },
+  {
+    num: "02",
+    title: "register workers",
+    desc: "set up worker machines that execute tasks. each worker runs ai agents in isolated workspaces with full git integration.",
+    command: "overlord setup worker --server https://your-server.com --token <token>",
+    link: "/docs/getting-started/worker-setup",
+    linkText: "worker setup guide",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="4" width="6" height="6" rx="1" />
+        <rect x="14" y="4" width="6" height="6" rx="1" />
+        <rect x="4" y="14" width="6" height="6" rx="1" />
+        <rect x="14" y="14" width="6" height="6" rx="1" />
+      </svg>
+    ),
+  },
+  {
+    num: "03",
+    title: "connect as developer",
+    desc: "install the developer cli to create tasks, attach to running sessions, and monitor progress from your terminal.",
+    command: "npm install -g @overlordai/developer-cli && ov login",
+    link: "/docs/guides/development-workflow",
+    linkText: "development workflow",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="4 17 10 11 4 5" />
+        <line x1="12" y1="19" x2="20" y2="19" />
+      </svg>
+    ),
+  },
+];
+
 function FeatureIcon({ name }: { name: string }) {
   const icons: Record<string, React.ReactNode> = {
     terminal: (
@@ -146,23 +194,13 @@ export default function LandingPage() {
           <p className="mx-auto mt-6 max-w-3xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
             orchestrate ai coding agents across your entire fleet. create tasks, watch them execute in real time, and merge the results — all from one dashboard.
           </p>
-          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <div className="mt-10">
             <Link
               href="/docs/getting-started/installation"
               className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-8 py-3 text-sm font-semibold text-black shadow-lg shadow-[var(--accent)]/25 transition-all hover:brightness-110 active:scale-[0.98]"
             >
               get started
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </Link>
-            <Link
-              href="/docs/getting-started/installation"
-              className="inline-flex items-center gap-1 text-sm text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
-            >
-              read docs
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="5" y1="12" x2="19" y2="12" />
                 <polyline points="12 5 19 12 12 19" />
               </svg>
@@ -345,25 +383,69 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Install CTA */}
+      {/* Setup Steps CTA */}
       <section className="border-t border-[var(--border)] bg-[var(--bg-card)]">
-        <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6 sm:py-28">
-          <h2 className="text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
-            get up and running in seconds
+        <div className="mx-auto max-w-5xl px-4 py-20 sm:px-6 sm:py-28">
+          <h2 className="text-center text-xl font-bold text-[var(--text-primary)] sm:text-2xl">
+            get up and running
           </h2>
-          <p className="mt-3 text-sm text-[var(--text-secondary)]">
-            one command to install. start orchestrating immediately.
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-[var(--text-secondary)]">
+            three components, three commands. deploy in minutes.
           </p>
-          <div className="relative mx-auto mt-10 max-w-lg">
-            <div className="flex items-center justify-between rounded-[4px] border border-[var(--border)] bg-[var(--bg-primary)] px-5 py-3 text-xs text-[var(--text-primary)]">
-              <span style={{ textTransform: "none" }}>
-                <span className="select-none text-[var(--text-secondary)]">$ </span>
-                npm install -g @overlordai/developer-cli
-              </span>
-              <CopyButton text="npm install -g @overlordai/developer-cli" />
-            </div>
+
+          <div className="mt-14 space-y-4">
+            {setupSteps.map((step) => (
+              <div
+                key={step.num}
+                className="group rounded-[4px] border border-[var(--border)] bg-[var(--bg-primary)] transition-shadow hover:shadow-md"
+              >
+                <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-6">
+                  {/* Left: number + icon */}
+                  <div className="flex items-center gap-4 sm:w-56 sm:flex-shrink-0">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-[var(--accent)]/10 text-[var(--accent)]">
+                      {step.icon}
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+                        step {step.num}
+                      </div>
+                      <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                        {step.title}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Right: description + command */}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
+                      {step.desc}
+                    </p>
+                    <div className="mt-3 flex items-center justify-between gap-2 rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2.5">
+                      <code className="overflow-x-auto text-[11px] text-[var(--text-primary)] whitespace-nowrap">
+                        <span className="select-none text-[var(--text-muted)]">$ </span>
+                        {step.command}
+                      </code>
+                      <CopyButton text={step.command} />
+                    </div>
+                    <div className="mt-2">
+                      <Link
+                        href={step.link}
+                        className="inline-flex items-center gap-1 text-[11px] text-[var(--accent)] transition-colors hover:brightness-110"
+                      >
+                        {step.linkText}
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                          <polyline points="12 5 19 12 12 19" />
+                        </svg>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="mt-10">
+
+          <div className="mt-12 text-center">
             <Link
               href="/docs/getting-started/installation"
               className="inline-flex items-center gap-2 rounded-[4px] bg-[var(--accent)] px-8 py-3 text-sm font-semibold text-black shadow-lg shadow-[var(--accent)]/25 transition-all hover:brightness-110 active:scale-[0.98]"

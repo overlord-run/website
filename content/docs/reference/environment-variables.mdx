@@ -14,11 +14,12 @@ server configuration is stored in `~/.overlord/.env`. these variables are set du
 | `REDIS_URL` | `redis://localhost:6379` | redis connection url |
 | `JWT_SECRET` | — | jwt signing secret (auto-generated during install) |
 | `WORKER_JWT_SECRET` | — | worker jwt signing secret (auto-generated during install) |
+| `ENCRYPTION_KEY` | — | encryption key for sensitive data at rest (auto-generated during install) |
 | `CORS_ORIGIN` | `*` | allowed cors origins (comma-separated) |
 | `LOG_LEVEL` | `info` | log level: fatal, error, warn, info, debug, trace |
 
 <Callout type="warning">
-  never expose `JWT_SECRET` or `WORKER_JWT_SECRET`. these are generated automatically during installation and should not be shared or committed to version control.
+  never expose `JWT_SECRET`, `WORKER_JWT_SECRET`, or `ENCRYPTION_KEY`. these are generated automatically during installation and should not be shared or committed to version control.
 </Callout>
 
 ### log levels

@@ -46,6 +46,36 @@ overlord doctor     # run health check
 
 the `overlord start` command automatically generates and registers system services (systemd on linux, launchd on macos).
 
+## add worker machines
+
+workers are the machines that actually run tasks. you need at least one worker to start using overlord.
+
+### 1. generate a registration token
+
+in the web dashboard, go to **admin → worker tokens → generate token**. each token registers exactly one worker.
+
+### 2. install worker on the target machine
+
+```bash
+npm install -g @overlordai/cli @overlordai/worker
+```
+
+### 3. run the setup wizard
+
+```bash
+overlord setup worker
+```
+
+the wizard will ask for your server url, the registration token, a machine name, and the number of concurrent task slots.
+
+<Callout type="info">
+  for detailed worker configuration, ssh keys, non-interactive mode, and troubleshooting, see the full [worker setup guide](/docs/getting-started/worker-setup).
+</Callout>
+
+### 4. verify connection
+
+once the worker starts, it will appear on the **machines** page in the web dashboard with status "online".
+
 ## developer cli
 
 developers interact with overlord through the `ov` cli:
@@ -54,7 +84,7 @@ developers interact with overlord through the `ov` cli:
 npm install -g @overlordai/developer-cli
 
 ov setup                 # quick setup — configure server url + authenticate
-ov task create --project PROJ "fix the login bug"
+ov task create -d "fix the login bug" -p PROJ
 ov attach 42             # connect to a running task's terminal
 ```
 
@@ -68,6 +98,6 @@ after starting the server, open `http://localhost:9000` in your browser and log 
 
 ## next steps
 
-- [quick start](/docs/getting-started/quick-start) — set up a development environment
-- [worker setup](/docs/getting-started/worker-setup) — configure worker machines
+- [worker setup](/docs/getting-started/worker-setup) — advanced worker configuration (ssh keys, non-interactive mode)
 - [deployment guide](/docs/guides/deployment) — deploy with cloudflare zero trust
+- [development workflow](/docs/guides/development-workflow) — end-to-end usage walkthrough

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { CategoryMeta } from "@/lib/docs";
+import { DocsSearch } from "./DocsSearch";
 
 interface DocsSidebarProps {
   categories: CategoryMeta[];
@@ -16,6 +17,9 @@ export function DocsSidebar({ categories, mobile, onNavigate }: DocsSidebarProps
 
   return (
     <nav className={mobile ? "" : "sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto py-6 pr-4"}>
+      <div className="mb-5">
+        <DocsSearch />
+      </div>
       <div className="space-y-5">
         {categories.map((cat) => (
           <SidebarCategory

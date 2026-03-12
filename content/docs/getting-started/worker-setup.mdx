@@ -69,14 +69,14 @@ worker configuration is stored in `~/.overlord-worker/.env`:
 
 ## non-interactive mode
 
-for automation or ci, pass all parameters as environment variables:
+for automation or ci, pass `--server` and `--token` as cli flags. non-interactive mode activates automatically when both are provided:
 
 ```bash
-OVERLORD_HOST=https://overlord.yourdomain.com \
-OVERLORD_WORKER_TOKEN=ovw_1_abc123 \
-OVERLORD_MACHINE_NAME=worker-01 \
-OVERLORD_MAX_SLOTS=4 \
-overlord setup worker --non-interactive
+overlord setup worker \
+  --server https://overlord.yourdomain.com \
+  --token ovw_1_abc123 \
+  --name worker-01 \
+  --slots 4
 ```
 
 ## verify

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GitHubLink } from "./GitHubLink";
 
 export function Footer() {
   return (
@@ -9,9 +10,9 @@ export function Footer() {
           <Link href="/docs/getting-started/installation" className="transition-colors hover:text-[var(--text-primary)]">
             documentation
           </Link>
-          <a href="https://github.com/nicepkg/overlord" target="_blank" rel="noopener noreferrer" className="transition-colors hover:text-[var(--text-primary)]">
+          <GitHubLink className="transition-colors hover:text-[var(--text-primary)]">
             github
-          </a>
+          </GitHubLink>
           <Link href="/docs/changelog/changelog" className="transition-colors hover:text-[var(--text-primary)]">
             changelog
           </Link>

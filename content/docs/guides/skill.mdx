@@ -1,0 +1,75 @@
+---
+title: claude code skill
+order: 5
+---
+
+# claude code skill
+
+use overlord directly from [claude code](https://claude.com/claude-code). once installed, your ai assistant can create tasks, monitor execution, manage projects, and interact with your overlord server — no manual api calls needed.
+
+## install
+
+```bash
+npx skills add overlord-run/skill
+```
+
+## configure
+
+the skill needs two environment variables to connect to your server:
+
+```bash
+export OVERLORD_SERVER=https://overlord.yourdomain.com
+export OVERLORD_TOKEN=your-personal-access-token
+```
+
+create a personal access token at `{your-server}/settings/tokens`.
+
+> **tip:** add these to your shell profile (`~/.zshrc`, `~/.bashrc`) so they persist across sessions.
+
+## what it can do
+
+once the skill is active, claude code can:
+
+- **create tasks** — describe what you want done, overlord dispatches to a worker
+- **list & monitor tasks** — check status, read execution logs, track progress
+- **cancel & retry tasks** — manage task lifecycle
+- **confirm pipeline stages** — approve or provide input for suspended stages
+- **manage projects** — list projects, view members
+- **check cluster health** — see machine status, online workers, queue depth
+- **search** — find tasks, projects, and machines by keyword
+- **read notifications** — check and clear your notification inbox
+
+## example usage
+
+after installing the skill, just ask claude code naturally:
+
+```
+> create a task in project "frontend" to fix the login page styling
+
+> what tasks are running right now?
+
+> show me the logs for task 42
+
+> how many machines are online?
+
+> cancel task 15
+```
+
+claude code will use the overlord api to fulfill these requests automatically.
+
+## how it works
+
+the skill teaches claude code the overlord rest api — endpoints, authentication, request formats. when you ask claude code to do something overlord-related, it calls the api using your configured server and token.
+
+no additional packages or mcp servers required. the skill is a lightweight instruction file that integrates seamlessly with claude code's existing tool capabilities.
+
+## requirements
+
+- [claude code](https://claude.com/claude-code) installed
+- a running overlord server
+- a personal access token with appropriate permissions
+- `OVERLORD_SERVER` and `OVERLORD_TOKEN` environment variables set
+
+## source
+
+the skill is open source: [github.com/overlord-run/skill](https://github.com/overlord-run/skill)

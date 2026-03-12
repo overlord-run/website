@@ -5,14 +5,14 @@ import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "overlord — ai task orchestration platform",
+    default: "overlord — ai agent fleet management",
     template: "%s | overlord",
   },
   description:
     "orchestrate ai coding agents across your entire fleet. create tasks, watch them execute in real time, and merge the results.",
   metadataBase: new URL("https://overlord.run"),
   openGraph: {
-    title: "overlord — ai task orchestration platform",
+    title: "overlord — ai agent fleet management",
     description:
       "orchestrate ai coding agents across your entire fleet. create tasks, watch them execute in real time, and merge the results.",
     url: "https://overlord.run",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "overlord — ai task orchestration platform",
+    title: "overlord — ai agent fleet management",
     description:
       "orchestrate ai coding agents across your entire fleet. create tasks, watch them execute in real time, and merge the results.",
   },

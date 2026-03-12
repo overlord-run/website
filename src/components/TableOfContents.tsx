@@ -19,7 +19,7 @@ export function TableOfContents() {
     const elements = article.querySelectorAll("h2, h3");
     const items: TocItem[] = Array.from(elements).map((el) => ({
       id: el.id,
-      text: el.textContent || "",
+      text: (el.textContent || "").replace(/\s*#\s*$/, ""),
       level: parseInt(el.tagName[1]),
     }));
     setHeadings(items);

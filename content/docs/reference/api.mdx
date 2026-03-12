@@ -67,6 +67,22 @@ confirm, choose, or provide input for a suspended stage.
 
 **body:** `{ "stageIndex": "number", "result": "string" }`
 
+### GET /api/web/tasks/:id/events
+
+get structured task events (stage transitions, logs, errors) with pagination and filtering.
+
+**query params:** `limit`, `offset`, `type`, `search`
+
+### GET /api/web/tasks/:id/logs
+
+get raw task log lines.
+
+**query params:** `limit`, `offset`
+
+### GET /api/web/tasks/:id/pending-confirm
+
+get pending stage confirmation details for a suspended task.
+
 ### POST /api/web/tasks/:id/pty-token
 
 get a channel token for pty websocket connection.
@@ -99,9 +115,31 @@ cancel machine drain.
 
 list all projects.
 
+### GET /api/web/projects/-/developers
+
+list all developers (id, name, gitEmail, role) for project member selection.
+
 ### GET /api/web/projects/:key
 
 get project details.
+
+### PUT /api/web/projects/:projectKey
+
+update project settings (name, repoUrl, pipeline, agentType, etc.). requires maintainer role on the project.
+
+### GET /api/web/projects/:projectKey/members
+
+list project members. requires maintainer role.
+
+### POST /api/web/projects/:projectKey/members
+
+add a member to the project.
+
+**body:** `{ "developerId": "number", "role?": "string" }`
+
+### DELETE /api/web/projects/:projectKey/members?developerId=N
+
+remove a member from the project.
 
 ## profile
 
@@ -277,6 +315,10 @@ update machine status.
 
 **body:** `{ "status?": "string" }`
 
+### DELETE /api/admin/machines/:id
+
+decommission a machine. disconnects the worker, re-queues assigned/suspended tasks, and marks running tasks as failed.
+
 ## admin — bots
 
 ### GET /api/admin/bots
@@ -286,6 +328,10 @@ list bot instances.
 ### POST /api/admin/bots
 
 create a bot instance.
+
+### DELETE /api/admin/bots/:id
+
+delete a bot instance and its bindings.
 
 ### GET /api/admin/bots/:id/bindings
 
@@ -312,6 +358,26 @@ get all system settings.
 ### PUT /api/admin/settings
 
 update system settings.
+
+## worker api
+
+### GET /api/workers/healthz
+
+worker api health check. returns connected worker count.
+
+### POST /api/workers/register
+
+register a new worker using a one-time enrollment token.
+
+**body:** `WorkerRegisterRequest` (machineId, token, name, capabilities, hardware info)
+
+### POST /api/workers/refresh-token
+
+refresh a worker jwt. requires valid worker jwt in authorization header.
+
+### POST /api/workers/recover
+
+recover a worker using a recovery secret (for re-registration after token loss).
 
 ## websocket
 

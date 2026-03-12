@@ -101,7 +101,7 @@ QUEUED → ASSIGNED → RUNNING ──→ COMPLETED
 | `QUEUED` | task created, waiting for available worker |
 | `ASSIGNED` | worker selected, preparing workspace |
 | `RUNNING` | pipeline executing (current stage tracked) |
-| `SUSPENDED` | worker offline, task may still be executing — awaiting reconnection |
+| `SUSPENDED` | pipeline awaiting human confirmation for a stage gate, or worker disconnected — awaiting reconnection |
 | `COMPLETED` | all stages finished, code committed |
 | `FAILED` | execution error — can be retried |
 | `CANCELLED` | manually cancelled by user |
