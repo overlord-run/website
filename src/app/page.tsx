@@ -2,19 +2,74 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { CopyButton } from "@/components/CopyButton";
+import { RotatingWord } from "@/components/RotatingWord";
 
 const steps = [
   {
-    title: "define",
-    desc: "describe your task in plain language — bug fixes, features, refactors. attach context and assign to any project.",
+    title: "connect your fleet",
+    desc: "register your machines as workers. each one runs ai agents — claude code, cursor, codex — using your existing subscriptions.",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="2" y="2" width="20" height="8" rx="2" ry="2" />
+        <rect x="2" y="14" width="20" height="8" rx="2" ry="2" />
+        <line x1="6" y1="6" x2="6.01" y2="6" />
+        <line x1="6" y1="18" x2="6.01" y2="18" />
+      </svg>
+    ),
   },
   {
-    title: "dispatch",
-    desc: "overlord routes the task to the best available worker and ai agent. execution starts immediately across your fleet.",
+    title: "send a task",
+    desc: "describe what you want from slack, lark, cli, or the web dashboard. overlord finds the best available machine and starts the ai agent automatically.",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13" />
+        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+      </svg>
+    ),
   },
   {
-    title: "monitor & take over",
-    desc: "watch real-time progress via the built-in terminal. jump in at any point to guide, correct, or take full control.",
+    title: "watch or walk away",
+    desc: "live terminal streams agent output to your browser. jump in to guide the agent, or come back later to a finished pull request.",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    ),
+  },
+];
+
+const heroFeatures = [
+  {
+    title: "trigger from everywhere",
+    desc: "slack message, lark bot, cli command, or web dashboard — create tasks from whatever tool you already use. phone, laptop, tablet, it all works.",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+      </svg>
+    ),
+  },
+  {
+    title: "code from anywhere",
+    desc: "on the bus, at a cafe, or away from your desk — dispatch tasks from your phone or laptop and your fleet keeps coding. come back to finished pull requests.",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      </svg>
+    ),
+  },
+  {
+    title: "pool subscriptions, maximize value",
+    desc: "every team member's ai subscription goes into a shared pool — everyone can use any seat. no idle subscriptions, no duplicate costs. the bigger your team, the more you save.",
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2" />
+        <polyline points="2 17 12 22 22 17" />
+        <polyline points="2 12 12 17 22 12" />
+      </svg>
+    ),
   },
 ];
 
@@ -73,7 +128,10 @@ const setupSteps = [
     num: "01",
     title: "deploy the server",
     desc: "install overlord and start the central server. it manages all tasks, authentication, and real-time communication.",
-    command: "npm install -g @overlordai/cli @overlordai/server && overlord install",
+    commands: [
+      "npm install -g @overlordai/cli @overlordai/server",
+      "overlord install",
+    ],
     link: "/docs/getting-started/installation",
     linkText: "installation guide",
     icon: (
@@ -88,7 +146,10 @@ const setupSteps = [
     num: "02",
     title: "register workers",
     desc: "set up worker machines that execute tasks. each worker runs ai agents in isolated workspaces with full git integration.",
-    command: "overlord setup worker --server https://your-server.com --token <token>",
+    commands: [
+      "npm install -g @overlordai/cli @overlordai/worker",
+      "overlord setup worker",
+    ],
     link: "/docs/getting-started/worker-setup",
     linkText: "worker setup guide",
     icon: (
@@ -104,9 +165,12 @@ const setupSteps = [
     num: "03",
     title: "connect as developer",
     desc: "install the developer cli to create tasks, attach to running sessions, and monitor progress from your terminal.",
-    command: "npm install -g @overlordai/developer-cli && ov login",
-    link: "/docs/guides/development-workflow",
-    linkText: "development workflow",
+    commands: [
+      "npm install -g @overlordai/developer-cli",
+      "ov login https://overlord.yourdomain.com",
+    ],
+    link: "/docs/getting-started/developer-setup",
+    linkText: "developer setup guide",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="4 17 10 11 4 5" />
@@ -184,15 +248,15 @@ export default function LandingPage() {
         />
         <div className="relative mx-auto max-w-5xl px-5 pb-20 pt-20 text-center sm:px-6 sm:pb-28 sm:pt-32">
           <div className="mb-6 inline-flex items-center rounded-full border border-[var(--accent)]/20 bg-[var(--accent)]/5 px-4 py-1.5 text-xs text-[var(--accent)]">
-            v1.0 — full automation platform
+            self-hosted · bring your own subscriptions and machines
           </div>
           <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-[var(--text-primary)] sm:text-4xl md:text-5xl">
-            your machines. your subscriptions.
+            turn your <RotatingWord /> into
             <br />
-            <span className="text-[var(--accent)]">full automation.</span>
+            <span className="text-[var(--accent)]">a dev team that never sleeps.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-3xl text-sm leading-relaxed text-[var(--text-secondary)] sm:text-base">
-            orchestrate ai coding agents across your entire fleet. create tasks, watch them execute in real time, and merge the results — all from one dashboard.
+            dispatch coding tasks across your machine fleet. ai agents execute in parallel — you watch, jump in, or come back to finished pull requests.
           </p>
           <div className="mt-10">
             <Link
@@ -216,7 +280,7 @@ export default function LandingPage() {
             how it works
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-sm text-[var(--text-secondary)]">
-            three steps from idea to merged code.
+            from task description to merged pull request.
           </p>
           <div className="mt-14 grid gap-8 sm:grid-cols-3">
             {steps.map((step, i) => (
@@ -227,11 +291,11 @@ export default function LandingPage() {
                     className="absolute right-0 top-8 hidden h-px w-8 translate-x-full bg-[var(--border)] sm:block"
                   />
                 )}
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-sm font-bold">
-                  {String(i + 1).padStart(2, "0")}
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">
+                  {step.icon}
                 </div>
                 <div className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
-                  step {i + 1}
+                  step {String(i + 1).padStart(2, "0")}
                 </div>
                 <h3 className="mt-2 text-sm font-semibold text-[var(--text-primary)]">
                   {step.title}
@@ -252,9 +316,31 @@ export default function LandingPage() {
             everything you need
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-center text-sm text-[var(--text-secondary)]">
-            a complete platform for ai-assisted software development.
+            self-hosted. your machines, your ai subscriptions, your control.
           </p>
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+
+          {/* Hero feature cards */}
+          <div className="mt-14 grid gap-6 sm:grid-cols-3">
+            {heroFeatures.map((feature) => (
+              <div
+                key={feature.title}
+                className="rounded-[4px] border border-[var(--accent)]/20 bg-[var(--accent)]/5 p-7 transition-shadow hover:shadow-md"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-[4px] bg-[var(--accent)]/10 text-[var(--accent)]">
+                  {feature.icon}
+                </div>
+                <h3 className="mt-4 text-base font-semibold text-[var(--text-primary)]">
+                  {feature.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+                  {feature.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Existing feature cards */}
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
               <div
                 key={feature.title}
@@ -415,17 +501,21 @@ export default function LandingPage() {
                     </div>
                   </div>
 
-                  {/* Right: description + command */}
+                  {/* Right: description + commands */}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
                       {step.desc}
                     </p>
-                    <div className="mt-3 flex items-center gap-2 rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2.5">
-                      <code className="min-w-0 flex-1 overflow-x-auto text-[11px] text-[var(--text-primary)] whitespace-nowrap">
-                        <span className="select-none text-[var(--text-muted)]">$ </span>
-                        {step.command}
-                      </code>
-                      <CopyButton text={step.command} />
+                    <div className="mt-3 space-y-1.5">
+                      {step.commands.map((cmd) => (
+                        <div key={cmd} className="flex items-center gap-2 rounded-[4px] border border-[var(--border)] bg-[var(--bg-card)] px-4 py-2.5">
+                          <code className="min-w-0 flex-1 overflow-x-auto text-[11px] text-[var(--text-primary)] whitespace-nowrap">
+                            <span className="select-none text-[var(--text-muted)]">$ </span>
+                            {cmd}
+                          </code>
+                          <CopyButton text={cmd} />
+                        </div>
+                      ))}
                     </div>
                     <div className="mt-2">
                       <Link

@@ -5,25 +5,27 @@ import "../styles/globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "overlord — ai agent fleet management",
+    default: "overlord — turn your subscriptions & machines into a dev team",
     template: "%s | overlord",
   },
   description:
-    "orchestrate ai coding agents across your entire fleet. create tasks, watch them execute in real time, and merge the results.",
+    "dispatch coding tasks across your machine fleet. ai agents execute in parallel — you watch, jump in, or come back to finished pull requests.",
   metadataBase: new URL("https://overlord.run"),
   openGraph: {
-    title: "overlord — ai agent fleet management",
+    title: "overlord — turn your subscriptions & machines into a dev team",
     description:
-      "orchestrate ai coding agents across your entire fleet. create tasks, watch them execute in real time, and merge the results.",
+      "dispatch coding tasks across your machine fleet. ai agents execute in parallel — you watch, jump in, or come back to finished pull requests.",
     url: "https://overlord.run",
     siteName: "overlord",
     type: "website",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "overlord — ai agent fleet management",
+    title: "overlord — turn your subscriptions & machines into a dev team",
     description:
-      "orchestrate ai coding agents across your entire fleet. create tasks, watch them execute in real time, and merge the results.",
+      "dispatch coding tasks across your machine fleet. ai agents execute in parallel — you watch, jump in, or come back to finished pull requests.",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,

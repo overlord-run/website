@@ -1,0 +1,87 @@
+---
+title: bot setup
+order: 4
+---
+
+## overview
+
+overlord supports creating tasks via chat bots. users can `@bot develop "fix the login bug"` in a group chat, and overlord dispatches the task automatically. notifications are sent back through the same channel.
+
+## lark setup
+
+### 1. create a lark app
+
+on [lark open platform](https://open.larksuite.com/) → custom app:
+
+- note the **app id** and **app secret**
+- event subscriptions: `im.message.receive_v1`, `card.action.trigger`
+- request url: `https://your-overlord-server.com/webhook/lark`
+- enable bot capability
+- permissions: `im:message`, `im:message:send_as_bot`
+
+### 2. register in overlord
+
+via admin → bot management → add bot, or via the api:
+
+```bash
+curl -X POST https://your-server:9000/api/admin/bots \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "lark",
+    "appId": "cli_xxx",
+    "appSecret": "your-app-secret",
+    "webhookToken": "your-verification-token",
+    "name": "Overlord Bot"
+  }'
+```
+
+### 3. bind chat groups to projects
+
+each chat group is bound to a default project so users don't need to specify `--project` every time:
+
+```bash
+curl -X POST https://your-server:9000/api/admin/bots/:botId/bindings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platformChatId": "oc_xxx",
+    "projectKey": "PROJ",
+    "chatName": "Project Dev Group"
+  }'
+```
+
+### 4. link developer accounts
+
+each developer's lark open id must be linked to their overlord account via the `platform_uid` field. this mapping allows overlord to identify who is issuing bot commands.
+
+update via admin → developers → edit, setting the platform uid to their lark open id.
+
+## bot commands
+
+| command | example | description |
+|---------|---------|-------------|
+| `develop` | `@bot develop "fix login bug" --project WEB` | create a new task |
+| `progress` | `@bot progress #42` | check task progress |
+| `cancel` | `@bot cancel #42` | cancel a running task |
+| `retry` | `@bot retry #42` | retry a failed task |
+| `list` | `@bot list --project WEB` | list recent tasks |
+| `confirm` | `@bot confirm #42` | confirm a pending stage |
+| `help` | `@bot help` | show available commands |
+
+## interactive cards
+
+when a pipeline reaches a confirmation stage, the bot sends an interactive card with action buttons (confirm / cancel / choice). users can respond directly from the chat interface without opening the web dashboard.
+
+## multi-bot architecture
+
+overlord supports multiple bot instances. each project or group can have its own lark bot. all bots share the same overlord backend and use a single webhook url (`/webhook/lark`). the server identifies which bot to use based on the `app_id` in the incoming request.
+
+<Callout type="info">
+  slack and discord adapters are planned for a future release. the adapter interface is extensible — custom platform support can be added by implementing the adapter interface.
+</Callout>
+
+## next steps
+
+- [developer setup](/docs/getting-started/developer-setup) — install the developer cli
+- [deployment guide](/docs/guides/deployment) — deploy with cloudflare zero trust

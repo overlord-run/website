@@ -1,0 +1,65 @@
+---
+title: developer setup
+order: 5
+---
+
+## overview
+
+the `ov` cli is the developer-facing command-line tool for interacting with overlord. install it on your laptop or workstation to create tasks, attach to running sessions, and monitor progress from your terminal.
+
+## installation
+
+```bash
+npm install -g @overlordai/developer-cli
+```
+
+## connect to your server
+
+```bash
+ov login https://overlord.yourdomain.com
+```
+
+you'll be prompted for a personal access token (pat). generate one in the web dashboard under profile → access tokens.
+
+alternatively, use the one-step setup wizard:
+
+```bash
+ov setup
+```
+
+this prompts for both the server url and token interactively.
+
+## verify
+
+```bash
+ov whoami
+```
+
+should display your username and role.
+
+## quick start
+
+### create a task
+
+```bash
+ov task create -d "fix the login bug" -p my-project
+```
+
+### watch a running task
+
+```bash
+ov attach <task_id>
+```
+
+use `--watch` for read-only mode, or `--takeover` to take control of the terminal.
+
+### list tasks
+
+```bash
+ov task list --status RUNNING
+```
+
+## next steps
+
+- [developer cli reference](/docs/reference/developer-cli) — full command reference
+- [development workflow](/docs/guides/development-workflow) — end-to-end workflow guide
