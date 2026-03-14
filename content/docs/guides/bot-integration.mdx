@@ -5,77 +5,59 @@ order: 2
 
 ## overview
 
-overlord supports creating tasks via chat bots. users can `@bot develop "fix the login bug"` in a group chat, and overlord dispatches the task automatically. notifications are sent back through the same channel.
-
-## lark setup
-
-### 1. create a lark app
-
-on [lark open platform](https://open.larksuite.com/) → custom app:
-
-- note the **app id** and **app secret**
-- event subscriptions: `im.message.receive_v1`, `card.action.trigger`
-- request url: `https://your-overlord-server.com/webhook/lark`
-- enable bot capability
-- permissions: `im:message`, `im:message:send_as_bot`
-
-### 2. register in overlord
-
-via admin → bot management → add bot, or via the api:
-
-```bash
-curl -X POST https://your-server:9000/api/admin/bots \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "lark",
-    "appId": "cli_xxx",
-    "appSecret": "your-app-secret",
-    "webhookToken": "your-verification-token",
-    "name": "Overlord Bot"
-  }'
-```
-
-### 3. bind chat groups to projects
-
-each chat group is bound to a default project so users don't need to specify `--project` every time:
-
-```bash
-curl -X POST https://your-server:9000/api/admin/bots/:botId/bindings \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platformChatId": "oc_xxx",
-    "projectKey": "PROJ",
-    "chatName": "Project Dev Group"
-  }'
-```
-
-### 4. link developer accounts
-
-each developer's lark open id must be linked to their overlord account via the `platform_uid` field. this mapping allows overlord to identify who is issuing bot commands.
-
-update via admin → developers → edit, setting the platform uid to their lark open id.
-
-## bot commands
-
-| command | example | description |
-|---------|---------|-------------|
-| `develop` | `@bot develop "fix login bug" --project WEB` | create a new task |
-| `progress` | `@bot progress #42` | check task progress |
-| `cancel` | `@bot cancel #42` | cancel a running task |
-| `retry` | `@bot retry #42` | retry a failed task |
-| `list` | `@bot list --project WEB` | list recent tasks |
-| `confirm` | `@bot confirm #42` | confirm a pending stage |
-| `help` | `@bot help` | show available commands |
+this guide covers advanced bot integration topics — interactive cards, troubleshooting, and the adapter pattern. for initial bot setup (lark, slack), see [bot setup](/docs/getting-started/bot-setup).
 
 ## interactive cards
 
-when a pipeline reaches a confirmation stage, the bot sends an interactive card with action buttons (confirm / cancel / choice). users can respond directly from the chat interface without opening the web dashboard.
+when a pipeline reaches a stage that requires user input, the bot sends an interactive card. there are three card modes:
 
-## multi-bot architecture
+### confirm mode
 
-overlord supports multiple bot instances. each project or group can have its own lark bot. all bots share the same overlord backend and use a single webhook url (`/webhook/lark`). the server identifies which bot to use based on the `app_id` in the incoming request.
+sent when a stage needs explicit approval before proceeding. the card shows a summary of what will happen and two buttons:
+
+- **confirm** — advance the pipeline to the next stage
+- **cancel** — abort the pipeline
+
+example: a deploy stage waiting for human sign-off before pushing to production.
+
+the bot updates the card in-place after the user responds, replacing the buttons with the outcome (confirmed by @user / cancelled by @user).
+
+### choice mode
+
+sent when the pipeline branches and the user must pick one of several options. each option is rendered as a button. the selected option determines which branch the pipeline follows.
+
+example: choosing a deploy target (`staging` / `production` / `canary`) mid-pipeline.
+
+### input mode
+
+sent when the pipeline needs free-form text input from the user. the card includes a text field and a submit button. the submitted value is injected into the pipeline context as a variable.
+
+example: providing a hotfix version number or a rollback reason.
+
+### card lifecycle
+
+1. bot sends the card when the stage starts
+2. card remains active until a user responds or the stage times out (default: 30 minutes, configurable per stage)
+3. on response, the bot updates the card to show the result and the pipeline continues
+4. if the stage times out, the card is updated with a timeout message and the pipeline follows the timeout path (fail or fallback, depending on config)
+
+only users with the appropriate project role can interact with cards. unauthorized clicks return an ephemeral error.
+
+## troubleshooting
+
+common issues when running bots in production:
+
+| symptom | cause | fix |
+|---------|-------|-----|
+| bot doesn't respond to mentions | webhook url not reachable | verify the url is publicly accessible and returns 200 to the platform's verification challenge |
+| `401` on webhook | wrong verification token / signing secret | check `webhookToken` matches the platform's verification token (lark) or signing secret (slack) |
+| commands work but no cards | missing card event subscription | lark: subscribe to `card.action.trigger`. slack: enable interactivity and set the interact url |
+| `user not found` error | developer account not linked | set `platform_uid` on the developer record to their platform user id |
+| bot responds in wrong project | chat group bound to wrong project | update the binding via admin → bot management or the bindings api |
+| duplicate messages | multiple bot instances handling same event | ensure only one overlord instance processes webhooks, or use the built-in dedup (events are idempotent by message id) |
+| card buttons do nothing | interact url misconfigured | slack: check interactivity request url. lark: check card action callback url |
+| `/overlord` slash command 404 | command url wrong | verify the slash command request url matches `https://your-server/webhook/slack/commands` |
+| bot stops responding after deploy | webhook url changed | update the request url in the platform's app settings to match the new server address |
 
 ## adapter pattern
 
@@ -86,6 +68,19 @@ the bot system uses an adapter pattern internally. each platform (lark, slack, d
 - `updateMessage(msgId, content)` — update existing messages (progress updates)
 - `resolveUser(platformUid)` — map platform user id to overlord developer
 
+to add a custom platform adapter, implement the interface and register it in the bot service config. see the lark and slack adapters in the codebase for reference.
+
+## multi-bot architecture
+
+overlord supports multiple bot instances across different platforms simultaneously. each project or group can have its own bot. all bots share the same overlord backend.
+
+routing works as follows:
+
+- **lark** — single webhook url (`/webhook/lark`), bot identified by `app_id` in the request payload
+- **slack** — separate endpoints for events, interactivity, and commands (`/webhook/slack/events`, `/webhook/slack/interact`, `/webhook/slack/commands`), bot identified by `app_id` in the request headers
+
+you can run multiple bots on the same platform (e.g., one slack bot per team) by registering each with a unique app id.
+
 <Callout type="info">
-  slack and discord adapters are planned for a future release. the adapter interface is extensible — custom platform support can be added by implementing the adapter interface.
+  a discord adapter is planned for a future release. the adapter interface is extensible — custom platform support can be added by implementing the adapter interface.
 </Callout>

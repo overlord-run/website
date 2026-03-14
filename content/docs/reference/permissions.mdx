@@ -1,0 +1,78 @@
+---
+title: permissions & roles
+order: 4
+---
+
+## overview
+
+overlord uses role-based access control (RBAC) with two layers: **system roles** that govern global permissions, and **project roles** that scope access within individual projects. roles are hierarchical — higher roles inherit all permissions from lower ones.
+
+## system roles
+
+system roles are assigned to developer accounts and determine what actions they can perform across the entire overlord instance.
+
+| role | inherits | description |
+|------|----------|-------------|
+| `developer` | — | base role for all users |
+| `lead` | `developer` | team lead with worker management capabilities |
+| `admin` | all | full system access |
+
+### permissions matrix
+
+| permission | developer | lead | admin |
+|------------|-----------|------|-------|
+| create & view tasks | yes | yes | yes |
+| attach to terminals | yes | yes | yes |
+| manage own profile | yes | yes | yes |
+| view assigned projects | yes | yes | yes |
+| view all workers | — | yes | yes |
+| drain / undrain workers | — | yes | yes |
+| manage developers | — | — | yes |
+| manage projects | — | — | yes |
+| manage bots | — | — | yes |
+| manage worker tokens | — | — | yes |
+| view audit logs | — | — | yes |
+| system settings | — | — | yes |
+
+## project roles
+
+project roles control what a developer can do within a specific project. these are assigned per project and are independent of system roles.
+
+| role | description |
+|------|-------------|
+| `member` | read access to project, can create tasks |
+| `maintainer` | full project management |
+
+### project permissions
+
+| permission | member | maintainer |
+|------------|--------|------------|
+| view project | yes | yes |
+| create tasks in project | yes | yes |
+| update project config | — | yes |
+| manage project members | — | yes |
+| manage git tokens | — | yes |
+
+<Callout type="info">
+  admins can access all projects without explicit membership. the project role check is bypassed entirely for admin system role.
+</Callout>
+
+## authentication
+
+overlord supports three authentication methods:
+
+| method | lifetime | use case |
+|--------|----------|----------|
+| **jwt** | access: 15 min, refresh: 7 days | web dashboard, api sessions |
+| **personal access token (pat)** | no expiry (until revoked) | cli tools, scripts, integrations |
+| **totp 2fa** | 30s codes | optional second factor on login |
+
+jwt authentication uses a rotating refresh token — each refresh request issues a new access token and a new refresh token, invalidating the previous refresh token. pats authenticate with the same `Authorization: Bearer <token>` header format as jwts.
+
+<Callout type="info">
+  totp 2fa is optional per account. once enabled, the `totpCode` field is required on login. use any standard authenticator app (google authenticator, authy, etc.) to generate codes.
+</Callout>
+
+## audit logging
+
+all privileged actions (developer management, project changes, worker operations, system settings) are recorded in the audit log. audit entries include the actor, action, target resource, and timestamp. only admins can view audit logs via the web dashboard or api.

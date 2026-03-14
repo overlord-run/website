@@ -57,17 +57,101 @@ each developer's lark open id must be linked to their overlord account via the `
 
 update via admin → developers → edit, setting the platform uid to their lark open id.
 
+## slack setup
+
+### 1. create a slack app
+
+go to [slack api](https://api.slack.com/apps) → create new app → from scratch.
+
+- note the **app id** and **signing secret** from basic information
+
+### 2. configure bot token scopes
+
+under oauth & permissions, add these bot token scopes:
+
+- `chat:write` — send messages
+- `chat:write.public` — send messages to channels the bot isn't a member of
+- `app_mentions:read` — receive `@bot` mentions
+- `im:read` — read direct messages
+- `im:write` — send direct messages
+- `users:read` — look up user info
+
+install the app to your workspace and copy the **bot user oauth token** (`xoxb-...`).
+
+### 3. configure event subscriptions
+
+under event subscriptions:
+
+- enable events
+- set request url: `https://your-overlord-server.com/webhook/slack/events`
+- subscribe to bot events: `app_mention`, `message.im`
+
+### 4. enable interactivity
+
+under interactivity & shortcuts:
+
+- toggle on
+- set request url: `https://your-overlord-server.com/webhook/slack/interact`
+
+### 5. add a slash command (optional)
+
+under slash commands → create new command:
+
+- command: `/overlord`
+- request url: `https://your-overlord-server.com/webhook/slack/commands`
+- short description: run overlord bot commands
+
+### 6. register in overlord
+
+```bash
+curl -X POST https://your-server:9000/api/admin/bots \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platform": "slack",
+    "appId": "A0XXXXXXX",
+    "appSecret": "xoxb-your-bot-token",
+    "webhookToken": "your-signing-secret",
+    "name": "Overlord Bot"
+  }'
+```
+
+note: `appSecret` = bot user oauth token, `webhookToken` = signing secret.
+
+### 7. bind channels to projects
+
+same as lark, but use the slack channel id (`C0XXXXXXX`) as `platformChatId`:
+
+```bash
+curl -X POST https://your-server:9000/api/admin/bots/:botId/bindings \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "platformChatId": "C0XXXXXXX",
+    "projectKey": "PROJ",
+    "chatName": "#project-dev"
+  }'
+```
+
+### 8. link developer accounts
+
+same as lark, but use the slack user id as `platform_uid`. find it via the user's profile → more → copy member id.
+
 ## bot commands
 
-| command | example | description |
-|---------|---------|-------------|
-| `develop` | `@bot develop "fix login bug" --project WEB` | create a new task |
-| `progress` | `@bot progress #42` | check task progress |
-| `cancel` | `@bot cancel #42` | cancel a running task |
-| `retry` | `@bot retry #42` | retry a failed task |
-| `list` | `@bot list --project WEB` | list recent tasks |
-| `confirm` | `@bot confirm #42` | confirm a pending stage |
-| `help` | `@bot help` | show available commands |
+| command | alias | example | description |
+|---------|-------|---------|-------------|
+| `develop` | `dev` | `@bot develop "fix login bug" --project WEB` | create a new task |
+| `progress` | | `@bot progress #42` | check task progress |
+| `cancel` | | `@bot cancel #42` | cancel a running task |
+| `retry` | | `@bot retry #42` | retry a failed task |
+| `list` | `ls` | `@bot list --project WEB` | list recent tasks |
+| `confirm` | | `@bot confirm #42` | confirm a pending stage |
+| `workspace` | `ws` | `@bot workspace` | show current workspace / project binding |
+| `logs` | `log` | `@bot logs #42` | view task logs |
+| `drain` | | `@bot drain` | pause task processing for this project |
+| `undrain` | | `@bot undrain` | resume task processing for this project |
+| `help` | | `@bot help` | show available commands |
 
 ## interactive cards
 
@@ -75,13 +159,14 @@ when a pipeline reaches a confirmation stage, the bot sends an interactive card 
 
 ## multi-bot architecture
 
-overlord supports multiple bot instances. each project or group can have its own lark bot. all bots share the same overlord backend and use a single webhook url (`/webhook/lark`). the server identifies which bot to use based on the `app_id` in the incoming request.
+overlord supports multiple bot instances. each project or group can have its own bot on any supported platform. all bots share the same overlord backend. the server identifies which bot to use based on the `app_id` in the incoming request.
 
 <Callout type="info">
-  slack and discord adapters are planned for a future release. the adapter interface is extensible — custom platform support can be added by implementing the adapter interface.
+  a discord adapter is planned for a future release. the adapter interface is extensible — custom platform support can be added by implementing the adapter interface.
 </Callout>
 
 ## next steps
 
 - [developer setup](/docs/getting-started/developer-setup) — install the developer cli
 - [deployment guide](/docs/guides/deployment) — deploy with cloudflare zero trust
+- [bot integration guide](/docs/guides/bot-integration) — interactive cards, troubleshooting, adapter pattern

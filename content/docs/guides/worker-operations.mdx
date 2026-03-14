@@ -1,0 +1,92 @@
+---
+title: worker operations
+order: 4
+---
+
+## overview
+
+workers are the machines that execute tasks. overlord monitors worker health, handles capability degradation, recovers from disconnections, and cleans up orphaned processes — all automatically. this guide covers the operational behavior you should understand when running workers in production.
+
+## health monitoring
+
+### heartbeat
+
+workers send a heartbeat to the server every **30 seconds**. if the server receives no heartbeat for **3 minutes**, the worker is marked `OFFLINE`.
+
+the heartbeat payload includes system metrics (cpu, memory, disk usage) that are displayed in the web dashboard.
+
+### disk usage auto-drain
+
+when a worker's disk usage exceeds **90%**, the server automatically sets the worker status to `DRAINING`. draining workers stop accepting new tasks but continue executing any in-progress work.
+
+<Callout type="warning">
+  auto-drain is not automatically reversed. after freeing disk space, an operator must manually undrain the worker via the dashboard or api.
+</Callout>
+
+## capability degradation
+
+workers track consecutive failures per agent type. after **3 consecutive failures**, that agent type is marked as degraded on the worker and tasks requiring it will be routed elsewhere.
+
+failure types determine the recovery window:
+
+| failure type | recovery time | description |
+|--------------|---------------|-------------|
+| `binary_missing` | permanent | agent binary not found — requires manual installation |
+| `auth_failure` | 5 minutes | credential or token issue |
+| `rate_limit` | 1 minute | upstream rate limit hit |
+| `unknown` | 10 minutes | unclassified error |
+
+a single successful execution resets the failure counter for that agent type, restoring the worker's capability.
+
+<Callout type="info">
+  permanent degradation (e.g. `binary_missing`) persists until the worker is restarted with the missing binary installed.
+</Callout>
+
+## orphan reaper
+
+on startup, each worker runs an orphan reaper that cleans up processes left behind by a previous crash or unclean shutdown. this prevents zombie processes from consuming resources.
+
+the cleanup sequence:
+
+1. identify orphaned processes from previous worker sessions
+2. send `SIGTERM` to each process
+3. wait **5 seconds** for graceful shutdown
+4. send `SIGKILL` to any remaining processes
+
+the orphan reaper supports both linux and macos process management.
+
+## cursor remote tunnel
+
+workers can start a cursor remote tunnel for a task's workspace, making it accessible via the web dashboard for interactive debugging.
+
+- **startup timeout:** 30 seconds — if the tunnel fails to establish within this window, it is marked as failed
+- **auto-crash recovery:** if the tunnel process crashes, the worker retries up to **3 times** with exponential backoff (2s, 4s, 8s delays)
+
+tunnels are tied to the task lifecycle and are torn down when the task completes or is cancelled.
+
+## reconnection recovery
+
+when a worker comes back online after a disconnection, overlord reconciles task state between the worker's local view and the server's records. workers have a **10 minute grace window** — if they reconnect within this period, recovery is attempted instead of failing all tasks.
+
+the reconciliation covers six branches:
+
+| server state | worker state | action |
+|--------------|--------------|--------|
+| suspended | running | **resume** — task continued running, update server to running |
+| suspended | completed | **complete** — task finished while suspended, accept result |
+| failed | running | **cancel** — server marked it failed, tell worker to stop |
+| failed | completed | **restore** — task actually succeeded, restore result on server |
+| cancelled | any | **stop** — user cancelled, ensure worker stops execution |
+| not reported | — | **fail** — worker has no record of this task, mark it failed |
+
+<Callout type="info">
+  the 10 minute grace window is intentionally generous to handle brief network blips, server restarts, and worker reboots without losing in-progress work.
+</Callout>
+
+## boot reconciliation
+
+when the server starts (or restarts), it reconciles all task state to ensure consistency:
+
+- **queued tasks** — re-enqueued into the dispatch queue
+- **assigned tasks** (claimed by a worker but not yet running) — reset to queued for reassignment
+- **stale running tasks** (assigned to workers that are now offline) — marked as failed
