@@ -16,6 +16,9 @@ server configuration is stored in `~/.overlord/.env`. these variables are set du
 | `WORKER_JWT_SECRET` | — | worker jwt signing secret (auto-generated during install) |
 | `ENCRYPTION_KEY` | — | encryption key for sensitive data at rest (auto-generated during install) |
 | `CORS_ORIGIN` | `*` | allowed cors origins (comma-separated) |
+| `OVERLORD_WEB_URL` | `http://localhost:3000` | public url used in notification links and bot cards |
+| `GIT_TOKEN` | — | git platform authentication token for mr/pr operations |
+| `TUNNEL_TTL_HOURS` | `4` | cursor tunnel expiration in hours (max 24) |
 | `LOG_LEVEL` | `info` | log level: fatal, error, warn, info, debug, trace |
 
 <Callout type="warning">
@@ -41,7 +44,7 @@ worker configuration is stored in `~/.overlord-worker/.env`. these are set durin
 |----------|---------|-------------|
 | `OVERLORD_HOST` | — | server url (required) |
 | `OVERLORD_WORKER_TOKEN` | — | one-time registration token |
-| `OVERLORD_MACHINE_NAME` | hostname | display name for this machine |
+| `OVERLORD_WORKER_NAME` | hostname | display name for this worker |
 | `OVERLORD_WORKSPACE_ROOT` | `~/.overlord-worker/workspaces` | directory for task workspaces |
 | `OVERLORD_MAX_SLOTS` | `2` | maximum concurrent tasks |
 | `OVERLORD_DATA_DIR` | `~/.overlord-worker` | config and jwt storage directory |

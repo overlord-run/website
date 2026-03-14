@@ -47,7 +47,7 @@ list tasks with optional filters. supports query parameters for status and proje
 
 create a new task.
 
-**body:** `{ "projectKey": "string", "description": "string", "machineId?": "string" }`
+**body:** `{ "projectKey": "string", "description": "string", "workerId?": "string" }`
 
 ### GET /api/web/tasks/:id
 
@@ -87,27 +87,27 @@ get pending stage confirmation details for a suspended task.
 
 get a channel token for pty websocket connection.
 
-## machines
+## workers
 
-### GET /api/web/machines
+### GET /api/web/workers
 
-list all machines.
+list all workers.
 
-### GET /api/web/machines/:id
+### GET /api/web/workers/:id
 
-get machine details.
+get worker details.
 
-### GET /api/web/machines/:id/tasks
+### GET /api/web/workers/:id/tasks
 
-list tasks assigned to a machine.
+list tasks assigned to a worker.
 
-### POST /api/web/machines/:id/drain
+### POST /api/web/workers/:id/drain
 
-start draining a machine (stops accepting new tasks).
+start draining a worker (stops accepting new tasks).
 
-### POST /api/web/machines/:id/undrain
+### POST /api/web/workers/:id/undrain
 
-cancel machine drain.
+cancel worker drain.
 
 ## projects
 
@@ -205,7 +205,7 @@ get tunnel status.
 
 ### GET /api/web/dashboard/stats
 
-get dashboard statistics (active tasks, machines, etc.).
+get dashboard statistics (active tasks, workers, etc.).
 
 ### GET /api/web/dashboard/recent-tasks
 
@@ -233,7 +233,7 @@ mark all notifications as read.
 
 ### GET /api/web/search?q=query
 
-global search across tasks, machines, and projects.
+global search across tasks, workers, and projects.
 
 ## admin — developers
 
@@ -303,21 +303,21 @@ revoke a worker token.
 
 get token status and linked machine.
 
-## admin — machines
+## admin — workers
 
-### GET /api/admin/machines
+### GET /api/admin/workers
 
-list all machines (admin view).
+list all workers (admin view).
 
-### PUT /api/admin/machines/:id
+### PUT /api/admin/workers/:id
 
-update machine status.
+update worker status.
 
 **body:** `{ "status?": "string" }`
 
-### DELETE /api/admin/machines/:id
+### DELETE /api/admin/workers/:id
 
-decommission a machine. disconnects the worker, re-queues assigned/suspended tasks, and marks running tasks as failed.
+decommission a worker. disconnects the worker, re-queues assigned/suspended tasks, and marks running tasks as failed.
 
 ## admin — bots
 

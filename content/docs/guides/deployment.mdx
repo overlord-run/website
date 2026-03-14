@@ -111,7 +111,7 @@ the wizard prompts for server url (use `https://overlord.yourdomain.com`), token
 
 **option b: web ui guided setup**
 
-open `https://overlord.yourdomain.com/machines/setup` in a browser and follow the step-by-step guide. it provides the exact commands to run on the worker machine.
+open `https://overlord.yourdomain.com/workers/setup` in a browser and follow the step-by-step guide. it provides the exact commands to run on the worker machine.
 
 <Callout type="info">
   each worker needs its own unique registration token. generate one per machine in admin → settings → tokens.
@@ -132,7 +132,7 @@ npm install -g @overlordai/developer-cli
 
 ov setup --server https://overlord.yourdomain.com
 ov whoami
-ov machine list    # should show ubuntu-server and mac-mini
+ov worker list    # should show ubuntu-server and mac-mini
 ```
 
 ### test task

@@ -121,6 +121,18 @@ run system diagnostics. checks:
 overlord doctor
 ```
 
+### overlord uninstall
+
+remove all overlord services and data for a clean reinstall.
+
+```bash
+overlord uninstall
+```
+
+<Callout type="warning">
+  this command removes all services, configuration, and data. use with caution — there is no undo.
+</Callout>
+
 ### overlord upgrade
 
 upgrade all overlord packages to the latest release from npm, then restart running services.

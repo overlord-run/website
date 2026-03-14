@@ -7,6 +7,13 @@ order: 2
   this guide is for contributing to overlord's source code. if you're looking to use overlord, see the [getting started](/docs/getting-started/installation) guide.
 </Callout>
 
+## prerequisites
+
+- node.js >= 20
+- pnpm >= 9
+- redis (running locally)
+- git >= 2.20
+
 ## development setup
 
 clone the repository and install dependencies:
@@ -69,7 +76,10 @@ open `http://localhost:5173` in your browser and log in with any of the seed cre
 | `pnpm dev:web` | vite dev server (port 5173) |
 | `pnpm dev:seed` | seed test data |
 | `pnpm build` | build all packages |
-| `pnpm test` | run all tests |
+| `pnpm test` | run unit tests |
+| `pnpm test:all` | run all tests including playwright e2e |
+| `pnpm test:coverage` | run tests with v8 coverage reports |
+| `pnpm lint` | type-check all packages |
 | `pnpm publish:all` | publish all packages to npm |
 
 ## after protocol changes
