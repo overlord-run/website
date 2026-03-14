@@ -142,15 +142,18 @@ same as lark, but use the slack user id as `platform_uid`. find it via the user'
 | command | alias | example | description |
 |---------|-------|---------|-------------|
 | `develop` | `dev` | `@bot develop "fix login bug" --project WEB` | create a new task |
+| `develop` | `dev` | `@bot develop "deploy" --on worker-1` | create a task on a specific worker |
 | `progress` | | `@bot progress #42` | check task progress |
 | `cancel` | | `@bot cancel #42` | cancel a running task |
 | `retry` | | `@bot retry #42` | retry a failed task |
 | `list` | `ls` | `@bot list --project WEB` | list recent tasks |
 | `confirm` | | `@bot confirm #42` | confirm a pending stage |
-| `workspace` | `ws` | `@bot workspace` | show current workspace / project binding |
+| `workspace` | `ws` | `@bot workspace #42` | show task workspace info |
 | `logs` | `log` | `@bot logs #42` | view task logs |
-| `drain` | | `@bot drain` | pause task processing for this project |
-| `undrain` | | `@bot undrain` | resume task processing for this project |
+| `drain` | | `@bot drain worker-1` | drain a worker (stop accepting new tasks) |
+| `undrain` | | `@bot undrain worker-1` | resume a drained worker |
+| `bind` | | `@bot bind` | link your chat account to your overlord account |
+| `info` | | `@bot info` | show chat id, user id, and link status |
 | `help` | | `@bot help` | show available commands |
 
 ## interactive cards
